@@ -76,7 +76,7 @@ const TechnicalReports: React.FC = () => {
                       <h3 className="font-semibold text-lg truncate">
                         {report.diagnosis.substring(0, 50)}{report.diagnosis.length > 50 ? '...' : ''}
                       </h3>
-                      <Badge variant={report.completed ? "success" : "secondary"}>
+                      <Badge variant={report.completed ? "default" : "secondary"} className={report.completed ? "bg-green-500 hover:bg-green-600" : ""}>
                         {report.completed ? 'Ολοκληρωμένο' : 'Σε εξέλιξη'}
                       </Badge>
                     </div>

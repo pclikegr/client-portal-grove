@@ -72,7 +72,7 @@ const TechnicalReportForm: React.FC<TechnicalReportFormProps> = ({
         deviceId,
         clientId,
         ...values
-      });
+      } as CreateTechnicalReportData);
     }
   };
 
