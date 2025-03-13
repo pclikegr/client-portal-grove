@@ -2,16 +2,19 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { getClientById, deleteClient } from '@/data/clients';
-import { Client } from '@/types/client';
+import { getDevicesByClientId } from '@/data/devices';
+import { Client, Device } from '@/types/client';
 import ClientDetails from '@/components/ClientDetails';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
-import { ChevronLeft, Trash2, ArrowLeft } from 'lucide-react';
+import { ChevronLeft, Trash2, Laptop, Smartphone, Plus } from 'lucide-react';
+import DevicesList from '@/components/DevicesList';
 
 const ViewClient: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [client, setClient] = useState<Client | null>(null);
+  const [devices, setDevices] = useState<Device[]>([]);
   const [isNotFound, setIsNotFound] = useState(false);
   
   useEffect(() => {
@@ -31,6 +34,8 @@ const ViewClient: React.FC = () => {
       });
     } else {
       setClient(clientData);
+      // Φορτώνουμε τις συσκευές του πελάτη
+      setDevices(getDevicesByClientId(id));
     }
   }, [id]);
   
@@ -116,7 +121,44 @@ const ViewClient: React.FC = () => {
           </Button>
         </div>
         
-        <ClientDetails client={client} />
+        {client && <ClientDetails client={client} />}
+        
+        {client && (
+          <div className="mt-8">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold">Συσκευές</h2>
+              <Link to={`/clients/${id}/devices/add`}>
+                <Button size="sm" className="gap-1">
+                  <Plus className="h-4 w-4" />
+                  <span>Προσθήκη Συσκευής</span>
+                </Button>
+              </Link>
+            </div>
+            
+            {devices.length > 0 ? (
+              <DevicesList devices={devices} />
+            ) : (
+              <div className="bg-muted/50 rounded-lg p-8 text-center">
+                <div className="flex justify-center mb-4">
+                  <div className="flex gap-2">
+                    <Laptop className="h-10 w-10 text-muted-foreground" />
+                    <Smartphone className="h-10 w-10 text-muted-foreground" />
+                  </div>
+                </div>
+                <h3 className="text-lg font-medium mb-2">Δεν υπάρχουν συσκευές</h3>
+                <p className="text-muted-foreground mb-4">
+                  Αυτός ο πελάτης δεν έχει καταχωρημένες συσκευές ακόμα.
+                </p>
+                <Link to={`/clients/${id}/devices/add`}>
+                  <Button variant="outline" size="sm" className="gap-1">
+                    <Plus className="h-4 w-4" />
+                    <span>Προσθήκη Πρώτης Συσκευής</span>
+                  </Button>
+                </Link>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

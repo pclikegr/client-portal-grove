@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Client, CreateClientData } from '@/types/client';
+import { Client, CreateClientData, UpdateClientData } from '@/types/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -37,11 +37,12 @@ const clientSchema = z.object({
 
 interface ClientFormProps {
   client?: Client;
-  onSubmit: (data: CreateClientData) => void;
+  onSubmit: (data: CreateClientData | UpdateClientData) => void;
   isLoading?: boolean;
+  isEditing?: boolean;
 }
 
-const ClientForm: React.FC<ClientFormProps> = ({ client, onSubmit, isLoading = false }) => {
+const ClientForm: React.FC<ClientFormProps> = ({ client, onSubmit, isLoading = false, isEditing = false }) => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('basic');
   
@@ -65,7 +66,14 @@ const ClientForm: React.FC<ClientFormProps> = ({ client, onSubmit, isLoading = f
 
   // Χειρισμός υποβολής
   const handleSubmit = (values: z.infer<typeof clientSchema>) => {
-    onSubmit(values);
+    if (isEditing && client) {
+      onSubmit({
+        id: client.id,
+        ...values
+      });
+    } else {
+      onSubmit(values as CreateClientData);
+    }
   };
 
   return (
