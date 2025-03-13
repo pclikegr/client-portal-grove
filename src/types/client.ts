@@ -73,6 +73,7 @@ export interface CreateDeviceData {
 export interface UpdateDeviceData extends Partial<CreateDeviceData> {
   id: string;
   status?: 'pending' | 'in_progress' | 'completed' | 'cancelled';
+  technicalReportId?: string;
 }
 
 // Τύποι για τεχνικές εκθέσεις

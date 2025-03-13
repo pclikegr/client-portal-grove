@@ -1,6 +1,6 @@
 
 import { TechnicalReport, CreateTechnicalReportData, UpdateTechnicalReportData } from "@/types/client";
-import { updateDevice } from "./devices";
+import { updateDevice, getDeviceById } from "./devices";
 
 // Αρχικά δεδομένα τεχνικών εκθέσεων
 export const technicalReports: TechnicalReport[] = [
@@ -45,10 +45,18 @@ export const addTechnicalReport = (report: CreateTechnicalReportData): Technical
   technicalReportsData = [...technicalReportsData, newReport];
   
   // Ενημέρωση της συσκευής με το technicalReportId
-  updateDevice(report.deviceId, { 
-    technicalReportId: newReport.id,
-    status: report.completed ? 'completed' : 'in_progress'
-  });
+  const device = getDeviceById(report.deviceId);
+  if (device) {
+    updateDevice(report.deviceId, { 
+      status: report.completed ? 'completed' : 'in_progress'
+    });
+    
+    // Update the device object directly (outside the type system)
+    const deviceAny = getDeviceById(report.deviceId) as any;
+    if (deviceAny) {
+      deviceAny.technicalReportId = newReport.id;
+    }
+  }
   
   return newReport;
 };
@@ -82,9 +90,14 @@ export const deleteTechnicalReport = (id: string): boolean => {
   
   // Ενημέρωση της συσκευής για την αφαίρεση του technicalReportId
   updateDevice(report.deviceId, { 
-    technicalReportId: undefined,
     status: 'pending'
   });
+  
+  // Update the device object directly (outside the type system)
+  const deviceAny = getDeviceById(report.deviceId) as any;
+  if (deviceAny) {
+    deviceAny.technicalReportId = undefined;
+  }
   
   const initialLength = technicalReportsData.length;
   technicalReportsData = technicalReportsData.filter(report => report.id !== id);

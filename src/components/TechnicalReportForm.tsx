@@ -67,10 +67,10 @@ const TechnicalReportForm: React.FC<TechnicalReportFormProps> = ({
         id: report.id,
         ...values
       });
-    } else {
+    } else if (deviceId && clientId) {
       onSubmit({
-        deviceId: deviceId || '',
-        clientId: clientId || '',
+        deviceId,
+        clientId,
         ...values
       });
     }
