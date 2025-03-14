@@ -1,6 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { format } from 'date-fns';
+import { CalendarIcon } from 'lucide-react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -9,6 +11,8 @@ import { getClients } from '@/data/clients';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   Form,
   FormControl,
@@ -25,6 +29,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 
 // Σχήμα επικύρωσης
 const deviceSchema = z.object({
@@ -35,6 +40,7 @@ const deviceSchema = z.object({
   serialNumber: z.string().optional(),
   problem: z.string().min(5, { message: 'Η περιγραφή του προβλήματος πρέπει να έχει τουλάχιστον 5 χαρακτήρες' }),
   status: z.enum(['pending', 'in_progress', 'completed', 'cancelled']).optional(),
+  receivedAt: z.date().optional(),
 });
 
 interface DeviceFormProps {
@@ -73,6 +79,7 @@ const DeviceForm: React.FC<DeviceFormProps> = ({
       serialNumber: device?.serialNumber || '',
       problem: device?.problem || '',
       status: device?.status || 'pending',
+      receivedAt: device?.receivedAt || new Date(),
     },
   });
 
@@ -175,6 +182,47 @@ const DeviceForm: React.FC<DeviceFormProps> = ({
                 )}
               />
             </div>
+
+            <FormField
+              control={form.control}
+              name="receivedAt"
+              render={({ field }) => (
+                <FormItem className="flex flex-col">
+                  <FormLabel>Ημερομηνία Εισαγωγής</FormLabel>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant={"outline"}
+                          className={cn(
+                            "w-full pl-3 text-left font-normal",
+                            !field.value && "text-muted-foreground"
+                          )}
+                        >
+                          {field.value ? (
+                            format(field.value, "PPP")
+                          ) : (
+                            <span>Επιλέξτε ημερομηνία</span>
+                          )}
+                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={field.value}
+                        onSelect={field.onChange}
+                        disabled={(date) => date > new Date()}
+                        initialFocus
+                        className={cn("p-3 pointer-events-auto")}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <FormField
               control={form.control}

@@ -75,7 +75,8 @@ export const addDevice = (device: CreateDeviceData): Device => {
     id: Date.now().toString(),
     status: 'pending',
     createdAt: new Date(),
-    updatedAt: new Date()
+    updatedAt: new Date(),
+    receivedAt: device.receivedAt || new Date() // Χρήση της παρεχόμενης ημερομηνίας ή της τρέχουσας
   };
   
   devicesData = [...devicesData, newDevice];

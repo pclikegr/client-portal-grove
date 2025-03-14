@@ -1,4 +1,3 @@
-
 export interface Client {
   id: string;
   firstName: string;
@@ -59,6 +58,7 @@ export interface Device {
   technicalReportId?: string;
   createdAt: Date;
   updatedAt: Date;
+  receivedAt?: Date; // Ημερομηνία εισαγωγής/παραλαβής της συσκευής
 }
 
 export interface CreateDeviceData {
@@ -68,6 +68,7 @@ export interface CreateDeviceData {
   model: string;
   serialNumber?: string;
   problem: string;
+  receivedAt?: Date; // Προσθήκη ημερομηνίας εισαγωγής
 }
 
 export interface UpdateDeviceData extends Partial<CreateDeviceData> {
