@@ -1,10 +1,11 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Device, DeviceType, CreateDeviceData, UpdateDeviceData } from '@/types/client';
+import { getClients } from '@/data/clients';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -27,7 +28,7 @@ import { Card, CardContent } from '@/components/ui/card';
 
 // Σχήμα επικύρωσης
 const deviceSchema = z.object({
-  clientId: z.string(),
+  clientId: z.string().min(1, { message: 'Η επιλογή πελάτη είναι υποχρεωτική' }),
   type: z.nativeEnum(DeviceType),
   brand: z.string().min(1, { message: 'Η μάρκα είναι υποχρεωτική' }),
   model: z.string().min(1, { message: 'Το μοντέλο είναι υποχρεωτικό' }),
@@ -52,6 +53,14 @@ const DeviceForm: React.FC<DeviceFormProps> = ({
   isEditing = false 
 }) => {
   const navigate = useNavigate();
+  const [availableClients, setAvailableClients] = useState([]);
+  
+  // Φόρτωση πελατών όταν απαιτείται επιλογή πελάτη
+  useEffect(() => {
+    if (!clientId) {
+      setAvailableClients(getClients());
+    }
+  }, [clientId]);
   
   // Αρχικοποίηση φόρμας
   const form = useForm<z.infer<typeof deviceSchema>>({
@@ -84,6 +93,34 @@ const DeviceForm: React.FC<DeviceFormProps> = ({
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSubmit)}>
           <CardContent className="p-6 space-y-4">
+            {/* Επιλογή πελάτη - Εμφανίζεται μόνο όταν δεν υπάρχει προκαθορισμένος πελάτης */}
+            {!clientId && (
+              <FormField
+                control={form.control}
+                name="clientId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Πελάτης</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Επιλέξτε πελάτη" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {availableClients.map(client => (
+                          <SelectItem key={client.id} value={client.id}>
+                            {client.firstName} {client.lastName}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
             <FormField
               control={form.control}
               name="type"
