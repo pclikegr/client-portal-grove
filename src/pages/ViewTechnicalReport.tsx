@@ -134,6 +134,11 @@ const ViewTechnicalReport: React.FC = () => {
                 <p>
                   <span className="font-medium">Περιγραφή Προβλήματος:</span> {device.problem}
                 </p>
+                {device.receivedAt && (
+                  <p>
+                    <span className="font-medium">Ημερομηνία Εισαγωγής:</span> {format(new Date(device.receivedAt), 'dd/MM/yyyy')}
+                  </p>
+                )}
               </div>
             )}
             
