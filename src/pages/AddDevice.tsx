@@ -2,8 +2,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { addDevice } from '@/data/devices';
+import { addTechnicalReport } from '@/data/technicalReports';
 import { getClientById } from '@/data/clients';
-import { CreateDeviceData, Client } from '@/types/client';
+import { CreateDeviceData, Client, CreateTechnicalReportData } from '@/types/client';
 import DeviceForm from '@/components/DeviceForm';
 import { toast } from '@/components/ui/use-toast';
 
@@ -29,16 +30,36 @@ const AddDevice: React.FC = () => {
     }
   }, [clientId, navigate]);
   
-  const handleSubmit = (data: CreateDeviceData) => {
+  const handleSubmit = (data: { 
+    device: CreateDeviceData; 
+    technicalReport?: Omit<CreateTechnicalReportData, 'deviceId' | 'clientId'> 
+  }) => {
     setIsLoading(true);
     
     try {
-      const newDevice = addDevice(data);
+      // Προσθήκη συσκευής
+      const newDevice = addDevice(data.device);
       
-      toast({
-        title: "Επιτυχής προσθήκη",
-        description: "Η συσκευή προστέθηκε επιτυχώς.",
-      });
+      // Προσθήκη δελτίου τεχνικού ελέγχου αν περιλαμβάνεται
+      if (data.technicalReport && data.technicalReport.diagnosis) {
+        const reportData: CreateTechnicalReportData = {
+          ...data.technicalReport,
+          deviceId: newDevice.id,
+          clientId: newDevice.clientId
+        };
+        
+        addTechnicalReport(reportData);
+        
+        toast({
+          title: "Επιτυχής προσθήκη",
+          description: "Η συσκευή και το δελτίο τεχνικού ελέγχου προστέθηκαν επιτυχώς.",
+        });
+      } else {
+        toast({
+          title: "Επιτυχής προσθήκη",
+          description: "Η συσκευή προστέθηκε επιτυχώς.",
+        });
+      }
       
       if (clientId) {
         navigate(`/clients/${clientId}`);
@@ -69,7 +90,7 @@ const AddDevice: React.FC = () => {
             </p>
           ) : (
             <p className="text-muted-foreground mt-1">
-              Συμπληρώστε τα στοιχεία της νέας συσκευής.
+              Συμπληρώστε τα στοιχεία της νέας συσκευής και του δελτίου τεχνικού ελέγχου.
             </p>
           )}
         </div>
@@ -78,6 +99,7 @@ const AddDevice: React.FC = () => {
           clientId={clientId}
           onSubmit={handleSubmit}
           isLoading={isLoading}
+          includeReport={true}
         />
       </div>
     </div>
