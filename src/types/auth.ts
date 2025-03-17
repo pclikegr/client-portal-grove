@@ -20,4 +20,5 @@ export interface AuthContextType {
   signUp: (email: string, password: string, firstName: string, lastName: string) => Promise<{ error: any | null, user: UserProfile | null }>;
   signOut: () => Promise<void>;
   updateProfile: (data: Partial<UserProfile>) => Promise<{ error: any | null }>;
+  signInWithOAuth: (provider: 'google' | 'facebook' | 'github') => Promise<{ error: any | null }>;
 }

@@ -7,7 +7,8 @@ import { Label } from '@/components/ui/label';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Eye, EyeOff, Loader2, Github, Mail, Chrome } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
 
 const Auth: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -18,7 +19,7 @@ const Auth: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [authMethod, setAuthMethod] = useState<'login' | 'register'>('login');
   
-  const { signIn, signUp, session } = useAuth();
+  const { signIn, signUp, session, signInWithOAuth } = useAuth();
   const navigate = useNavigate();
   
   useEffect(() => {
@@ -52,6 +53,12 @@ const Auth: React.FC = () => {
       // Μετά την επιτυχή εγγραφή, μεταφερόμαστε στο login tab
       setAuthMethod('login');
     }
+  };
+
+  const handleOAuthSignIn = async (provider: 'google' | 'facebook' | 'github') => {
+    setIsSubmitting(true);
+    await signInWithOAuth(provider);
+    setIsSubmitting(false);
   };
 
   const togglePasswordVisibility = () => {
@@ -115,7 +122,7 @@ const Auth: React.FC = () => {
                 </div>
               </CardContent>
               
-              <CardFooter>
+              <CardFooter className="flex flex-col space-y-4">
                 <Button 
                   type="submit" 
                   className="w-full" 
@@ -130,6 +137,39 @@ const Auth: React.FC = () => {
                     'Σύνδεση'
                   )}
                 </Button>
+                
+                <div className="relative w-full">
+                  <div className="absolute inset-0 flex items-center">
+                    <Separator className="w-full" />
+                  </div>
+                  <div className="relative flex justify-center">
+                    <span className="bg-background px-2 text-sm text-muted-foreground">
+                      ή συνδεθείτε με
+                    </span>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-2">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => handleOAuthSignIn('google')}
+                    disabled={isSubmitting}
+                  >
+                    <Chrome className="mr-2 h-4 w-4" />
+                    Google
+                  </Button>
+                  
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => handleOAuthSignIn('github')}
+                    disabled={isSubmitting}
+                  >
+                    <Github className="mr-2 h-4 w-4" />
+                    GitHub
+                  </Button>
+                </div>
               </CardFooter>
             </form>
           </TabsContent>
@@ -195,7 +235,7 @@ const Auth: React.FC = () => {
                 </div>
               </CardContent>
               
-              <CardFooter>
+              <CardFooter className="flex flex-col space-y-4">
                 <Button 
                   type="submit" 
                   className="w-full" 
@@ -210,6 +250,39 @@ const Auth: React.FC = () => {
                     'Εγγραφή'
                   )}
                 </Button>
+                
+                <div className="relative w-full">
+                  <div className="absolute inset-0 flex items-center">
+                    <Separator className="w-full" />
+                  </div>
+                  <div className="relative flex justify-center">
+                    <span className="bg-background px-2 text-sm text-muted-foreground">
+                      ή εγγραφείτε με
+                    </span>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-2">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => handleOAuthSignIn('google')}
+                    disabled={isSubmitting}
+                  >
+                    <Chrome className="mr-2 h-4 w-4" />
+                    Google
+                  </Button>
+                  
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => handleOAuthSignIn('github')}
+                    disabled={isSubmitting}
+                  >
+                    <Github className="mr-2 h-4 w-4" />
+                    GitHub
+                  </Button>
+                </div>
               </CardFooter>
             </form>
           </TabsContent>

@@ -13,6 +13,7 @@ export const AuthContext = createContext<AuthContextType>({
   signUp: async () => ({ error: null, user: null }),
   signOut: async () => {},
   updateProfile: async () => ({ error: null }),
+  signInWithOAuth: async () => ({ error: null }),
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -161,6 +162,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const signInWithOAuth = async (provider: 'google' | 'facebook' | 'github') => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: window.location.origin,
+        },
+      });
+
+      if (error) throw error;
+      return { error: null };
+    } catch (error: any) {
+      toast.error(`Η σύνδεση με ${provider} απέτυχε: ${error.message}`);
+      return { error };
+    }
+  };
+
   const updateProfile = async (data: Partial<UserProfile>) => {
     if (!session?.user) {
       return { error: new Error('Δεν υπάρχει συνδεδεμένος χρήστης') };
@@ -205,6 +223,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signUp,
     signOut,
     updateProfile,
+    signInWithOAuth,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
