@@ -36,6 +36,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
           if (error) throw error;
 
+          // Ensure role is either 'user' or 'admin'
+          const userRole = profileData.role === 'admin' ? 'admin' : 'user';
+
           setSession({
             accessToken: data.session.access_token,
             user: {
@@ -44,7 +47,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               lastName: profileData.last_name,
               email: profileData.email,
               avatarUrl: profileData.avatar_url,
-              role: profileData.role,
+              role: userRole,
             },
           });
         }
@@ -70,6 +73,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               .single();
 
             if (error) throw error;
+            
+            // Ensure role is either 'user' or 'admin'
+            const userRole = profileData.role === 'admin' ? 'admin' : 'user';
 
             setSession({
               accessToken: session.access_token,
@@ -79,7 +85,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 lastName: profileData.last_name,
                 email: profileData.email,
                 avatarUrl: profileData.avatar_url,
-                role: profileData.role,
+                role: userRole,
               },
             });
           } catch (error) {
@@ -128,16 +134,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       // Το προφίλ δημιουργείται αυτόματα μέσω του trigger
       toast.success('Η εγγραφή ολοκληρώθηκε με επιτυχία!');
-      return { 
-        error: null, 
-        user: data.user ? {
-          id: data.user.id,
-          firstName,
-          lastName,
-          email,
-          role: 'user'
-        } : null
-      };
+      
+      // Explicitly type the user with the 'user' role
+      const userProfile: UserProfile | null = data.user ? {
+        id: data.user.id,
+        firstName,
+        lastName,
+        email,
+        role: 'user' // Always assign 'user' role to new users
+      } : null;
+      
+      return { error: null, user: userProfile };
     } catch (error: any) {
       toast.error('Η εγγραφή απέτυχε: ' + error.message);
       return { error, user: null };
@@ -191,7 +198,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const value = {
+  const value: AuthContextType = {
     session,
     isLoading,
     signIn,
