@@ -2,11 +2,11 @@
 # Handle Single Page Application routing
 <IfModule mod_rewrite.c>
   RewriteEngine On
-  RewriteBase /
+  RewriteBase /crm2/
   RewriteRule ^index\.html$ - [L]
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
-  RewriteRule . /index.html [L]
+  RewriteRule . /crm2/index.html [L]
 </IfModule>
 
 # Cache control for static assets
