@@ -6,8 +6,8 @@ import { componentTagger } from "lovable-tagger";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
-  // Base path for GitHub deployment, comment this line for local development
-  // base: '/client-portal-grove/',
+  // For production deployment on your server
+  // base: '/', // Use this if the app is at the root of your domain
   server: {
     host: "::",
     port: 8080,
@@ -22,4 +22,10 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    outDir: 'dist',
+    assetsDir: 'assets',
+    sourcemap: false,
+    minify: true,
+  }
 }));
