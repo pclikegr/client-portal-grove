@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Session, UserProfile } from "@/types/auth";
@@ -6,6 +7,7 @@ import { Session, UserProfile } from "@/types/auth";
  * Fetch user profile data from Supabase
  */
 export const fetchUserProfile = async (userId: string) => {
+  console.log('Fetching profile for user ID:', userId);
   const { data: profileData, error } = await supabase
     .from('profiles')
     .select('*')
@@ -17,6 +19,7 @@ export const fetchUserProfile = async (userId: string) => {
     return { error, profileData: null };
   }
 
+  console.log('Profile data fetched successfully:', profileData);
   return { error: null, profileData };
 };
 

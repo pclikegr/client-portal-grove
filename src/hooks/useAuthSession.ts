@@ -9,6 +9,8 @@ export const useAuthSession = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
+    let isMounted = true;
+
     const checkSession = async () => {
       try {
         console.log('Checking session...');
@@ -22,8 +24,10 @@ export const useAuthSession = () => {
 
             if (error) {
               console.error('Error fetching profile:', error);
-              setSession(null);
-              setIsLoading(false);
+              if (isMounted) {
+                setSession(null);
+                setIsLoading(false);
+              }
               return;
             }
 
@@ -34,20 +38,30 @@ export const useAuthSession = () => {
             );
             
             console.log('Setting session with data:', sessionData);
-            setSession(sessionData);
+            if (isMounted) {
+              setSession(sessionData);
+              setIsLoading(false);
+            }
           } catch (error) {
             console.error('Error in session check:', error);
-            setSession(null);
+            if (isMounted) {
+              setSession(null);
+              setIsLoading(false);
+            }
           }
         } else {
           console.log('No Supabase session found');
-          setSession(null);
+          if (isMounted) {
+            setSession(null);
+            setIsLoading(false);
+          }
         }
       } catch (error) {
         console.error('Error checking session:', error);
-        setSession(null);
-      } finally {
-        setIsLoading(false);
+        if (isMounted) {
+          setSession(null);
+          setIsLoading(false);
+        }
       }
     };
 
@@ -65,8 +79,10 @@ export const useAuthSession = () => {
 
             if (error) {
               console.error('Error fetching profile after state change:', error);
-              setSession(null);
-              setIsLoading(false);
+              if (isMounted) {
+                setSession(null);
+                setIsLoading(false);
+              }
               return;
             }
 
@@ -77,24 +93,33 @@ export const useAuthSession = () => {
             );
             
             console.log('Setting session after auth change:', sessionData);
-            setSession(sessionData);
+            if (isMounted) {
+              setSession(sessionData);
+              setIsLoading(false);
+            }
           } catch (error) {
             console.error('Error fetching user profile:', error);
-            setSession(null);
-          } finally {
-            setIsLoading(false);
+            if (isMounted) {
+              setSession(null);
+              setIsLoading(false);
+            }
           }
         } else {
-          setIsLoading(false);
+          if (isMounted) {
+            setIsLoading(false);
+          }
         }
       } else if (event === 'SIGNED_OUT') {
         console.log('User signed out');
-        setSession(null);
-        setIsLoading(false);
+        if (isMounted) {
+          setSession(null);
+          setIsLoading(false);
+        }
       }
     });
 
     return () => {
+      isMounted = false;
       subscription.unsubscribe();
     };
   }, []);
