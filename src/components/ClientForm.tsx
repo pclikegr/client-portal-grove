@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
@@ -20,17 +19,16 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from '@/components/ui/use-toast';
 
-// Σχήμα επικύρωσης
 const clientSchema = z.object({
-  firstName: z.string().min(2, { message: 'Το όνομα πρέπει να έχει τουλάχιστον 2 χαρακτήρες' }),
-  lastName: z.string().min(2, { message: 'Το επώνυμο πρέπει να έχει τουλάχιστον 2 χαρακτήρες' }),
+  first_name: z.string().min(2, { message: 'Το όνομα πρέπει να έχει τουλάχιστον 2 χαρακτήρες' }),
+  last_name: z.string().min(2, { message: 'Το επώνυμο πρέπει να έχει τουλάχιστον 2 χαρακτήρες' }),
   email: z.string().email({ message: 'Μη έγκυρη διεύθυνση email' }),
   phone: z.string().min(10, { message: 'Το τηλέφωνο πρέπει να έχει τουλάχιστον 10 ψηφία' }),
   company: z.string().optional(),
   position: z.string().optional(),
   address: z.string().optional(),
   city: z.string().optional(),
-  zipCode: z.string().optional(),
+  zip_code: z.string().optional(),
   country: z.string().optional(),
   notes: z.string().optional(),
 });
@@ -46,25 +44,23 @@ const ClientForm: React.FC<ClientFormProps> = ({ client, onSubmit, isLoading = f
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('basic');
   
-  // Αρχικοποίηση φόρμας
   const form = useForm<z.infer<typeof clientSchema>>({
     resolver: zodResolver(clientSchema),
     defaultValues: {
-      firstName: client?.firstName || '',
-      lastName: client?.lastName || '',
+      first_name: client?.first_name || '',
+      last_name: client?.last_name || '',
       email: client?.email || '',
       phone: client?.phone || '',
       company: client?.company || '',
       position: client?.position || '',
       address: client?.address || '',
       city: client?.city || '',
-      zipCode: client?.zipCode || '',
+      zip_code: client?.zip_code || '',
       country: client?.country || '',
       notes: client?.notes || '',
     },
   });
 
-  // Χειρισμός υποβολής
   const handleSubmit = (values: z.infer<typeof clientSchema>) => {
     if (isEditing && client) {
       onSubmit({
@@ -94,7 +90,7 @@ const ClientForm: React.FC<ClientFormProps> = ({ client, onSubmit, isLoading = f
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <FormField
                     control={form.control}
-                    name="firstName"
+                    name="first_name"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Όνομα</FormLabel>
@@ -108,7 +104,7 @@ const ClientForm: React.FC<ClientFormProps> = ({ client, onSubmit, isLoading = f
 
                   <FormField
                     control={form.control}
-                    name="lastName"
+                    name="last_name"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Επώνυμο</FormLabel>
@@ -234,7 +230,7 @@ const ClientForm: React.FC<ClientFormProps> = ({ client, onSubmit, isLoading = f
 
                   <FormField
                     control={form.control}
-                    name="zipCode"
+                    name="zip_code"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Τ.Κ.</FormLabel>

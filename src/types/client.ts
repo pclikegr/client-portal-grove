@@ -1,4 +1,3 @@
-
 export interface Client {
   id: string;
   user_id: string;
@@ -6,13 +5,13 @@ export interface Client {
   last_name: string;
   email: string;
   phone: string;
+  company?: string;
+  position?: string;
   address?: string;
   city?: string;
   zip_code?: string;
   country?: string;
   notes?: string;
-  company?: string;
-  position?: string;
   created_at: Date;
   updated_at: Date;
 }
@@ -22,24 +21,19 @@ export interface CreateClientData {
   last_name: string;
   email: string;
   phone: string;
+  company?: string;
+  position?: string;
   address?: string;
   city?: string;
   zip_code?: string;
   country?: string;
   notes?: string;
-  company?: string;
-  position?: string;
 }
 
-export interface UpdateClientData extends Partial<Omit<CreateClientData, 'first_name' | 'last_name' | 'email' | 'phone'>> {
+export interface UpdateClientData extends Partial<CreateClientData> {
   id: string;
-  first_name?: string;
-  last_name?: string;
-  email?: string;
-  phone?: string;
 }
 
-// Νέοι τύποι για συσκευές
 export enum DeviceType {
   LAPTOP = 'laptop',
   MOBILE = 'mobile',
@@ -79,7 +73,6 @@ export interface UpdateDeviceData extends Partial<CreateDeviceData> {
   technicalReportId?: string;
 }
 
-// Τύποι για τεχνικές εκθέσεις
 export interface TechnicalReport {
   id: string;
   deviceId: string;

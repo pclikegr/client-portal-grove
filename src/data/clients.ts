@@ -1,88 +1,89 @@
-
 import { Client } from "@/types/client";
 
 export const clients: Client[] = [
   {
     id: "1",
-    firstName: "Γιώργος",
-    lastName: "Παπαδόπουλος",
+    user_id: "1",
+    first_name: "Γιώργος",
+    last_name: "Παπαδόπουλος",
     email: "gpapadopoulos@example.com",
     phone: "69XXXXXXXX",
     company: "Τεχνολογίες ΑΕ",
     position: "Διευθυντής Ανάπτυξης",
     address: "Λεωφόρος Αθηνών 123",
     city: "Αθήνα",
-    zipCode: "11743",
+    zip_code: "11743",
     country: "Ελλάδα",
     notes: "Σημαντικός πελάτης με μεγάλα έργα",
-    createdAt: new Date("2023-01-10"),
-    updatedAt: new Date("2023-01-10"),
+    created_at: new Date("2023-01-10"),
+    updated_at: new Date("2023-01-10"),
   },
   {
     id: "2",
-    firstName: "Μαρία",
-    lastName: "Κωνσταντίνου",
+    user_id: "2",
+    first_name: "Μαρία",
+    last_name: "Κωνσταντίνου",
     email: "mkonstantinou@example.com",
     phone: "69XXXXXXXX",
     company: "Δίκτυα ΑΕ",
     position: "Οικονομική Διευθύντρια",
     address: "Λεωφόρος Κηφισίας 45",
     city: "Αθήνα",
-    zipCode: "11523",
+    zip_code: "11523",
     country: "Ελλάδα",
-    createdAt: new Date("2023-02-15"),
-    updatedAt: new Date("2023-02-15"),
+    created_at: new Date("2023-02-15"),
+    updated_at: new Date("2023-02-15"),
   },
   {
     id: "3",
-    firstName: "Ανδρέας",
-    lastName: "Αντωνίου",
+    user_id: "3",
+    first_name: "Ανδρέας",
+    last_name: "Αντωνίου",
     email: "aantoniou@example.com",
     phone: "69XXXXXXXX",
     company: "Λογισμικό ΕΠΕ",
     position: "Τεχνικός Διευθυντής",
     address: "Ερμού 18",
     city: "Θεσσαλονίκη",
-    zipCode: "54624",
+    zip_code: "54624",
     country: "Ελλάδα",
-    notes: "Ενδιαφέρεται για νέα προϊόντα",
-    createdAt: new Date("2023-03-05"),
-    updatedAt: new Date("2023-03-05"),
+    created_at: new Date("2023-03-05"),
+    updated_at: new Date("2023-03-05"),
   },
   {
     id: "4",
-    firstName: "Ελένη",
-    lastName: "Παππά",
+    user_id: "4",
+    first_name: "Ελένη",
+    last_name: "Παππά",
     email: "epappa@example.com",
     phone: "69XXXXXXXX",
     company: "Σχεδιασμός ΑΕ",
     position: "Υπεύθυνη Μάρκετινγκ",
     address: "Εγνατία 102",
     city: "Θεσσαλονίκη",
-    zipCode: "54622",
+    zip_code: "54622",
     country: "Ελλάδα",
-    createdAt: new Date("2023-03-18"),
-    updatedAt: new Date("2023-03-18"),
+    created_at: new Date("2023-03-18"),
+    updated_at: new Date("2023-03-18"),
   },
   {
     id: "5",
-    firstName: "Κώστας",
-    lastName: "Δημητρίου",
+    user_id: "5",
+    first_name: "Κώστας",
+    last_name: "Δημητρίου",
     email: "kdimitriou@example.com",
     phone: "69XXXXXXXX",
     company: "Κατασκευές ΑΕ",
     position: "Γενικός Διευθυντής",
     address: "Αριστοτέλους 25",
     city: "Πάτρα",
-    zipCode: "26221",
+    zip_code: "26221",
     country: "Ελλάδα",
-    notes: "Συνεργαζόμαστε από το 2020",
-    createdAt: new Date("2023-04-07"),
-    updatedAt: new Date("2023-04-07"),
+    created_at: new Date("2023-04-07"),
+    updated_at: new Date("2023-04-07"),
   },
 ];
 
-// Λειτουργίες για χειρισμό των δεδομένων
 let clientsData = [...clients];
 
 export const getClients = (): Client[] => {
@@ -133,8 +134,8 @@ export const searchClients = (query: string): Client[] => {
   
   return clientsData.filter(client => {
     return searchTerms.some(term => 
-      client.firstName.toLowerCase().includes(term) ||
-      client.lastName.toLowerCase().includes(term) ||
+      client.first_name.toLowerCase().includes(term) ||
+      client.last_name.toLowerCase().includes(term) ||
       client.email.toLowerCase().includes(term) ||
       client.company?.toLowerCase().includes(term) ||
       client.position?.toLowerCase().includes(term) ||

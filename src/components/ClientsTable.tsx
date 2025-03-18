@@ -20,8 +20,8 @@ const ClientsTable: React.FC<ClientsTableProps> = ({ clients, onDelete }) => {
   const filteredClients = clients.filter(client => {
     const query = searchQuery.toLowerCase();
     return (
-      client.firstName.toLowerCase().includes(query) ||
-      client.lastName.toLowerCase().includes(query) ||
+      client.first_name.toLowerCase().includes(query) ||
+      client.last_name.toLowerCase().includes(query) ||
       client.email.toLowerCase().includes(query) ||
       client.phone.includes(query) ||
       (client.company && client.company.toLowerCase().includes(query))
@@ -142,10 +142,7 @@ const ClientsTable: React.FC<ClientsTableProps> = ({ clients, onDelete }) => {
             <tbody>
               {sortedClients.length > 0 ? (
                 sortedClients.map((client) => (
-                  <tr 
-                    key={client.id} 
-                    className="border-b border-border last:border-0 hover:bg-muted/50 transition-colors"
-                  >
+                  <tr key={client.id}>
                     <td className="px-4 py-3">
                       <div className="font-medium">
                         {client.last_name} {client.first_name}
