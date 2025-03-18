@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { getClientById, deleteClient } from '@/data/clients';
@@ -17,7 +18,7 @@ const ViewClient: React.FC = () => {
   const [isNotFound, setIsNotFound] = useState(false);
   
   useEffect(() => {
-    const loadClient = async () => {
+    const loadClientAndDevices = async () => {
       if (!id) {
         setIsNotFound(true);
         return;
@@ -35,6 +36,8 @@ const ViewClient: React.FC = () => {
           });
         } else {
           setClient(clientData);
+          const devicesList = await getDevicesByClientId(id);
+          setDevices(devicesList);
         }
       } catch (error) {
         console.error('Error loading client:', error);
@@ -42,7 +45,7 @@ const ViewClient: React.FC = () => {
       }
     };
 
-    loadClient();
+    loadClientAndDevices();
   }, [id]);
   
   const handleDelete = () => {
