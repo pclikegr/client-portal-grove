@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { AuthContextType, Session, UserProfile } from '@/types/auth';
 import { supabase } from '@/integrations/supabase/client';
@@ -27,41 +28,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const { data: { session: supabaseSession } } = await supabase.auth.getSession();
         
         if (supabaseSession) {
-          const { data: profileData, error } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', supabaseSession.user.id)
-            .single();
-
-          if (error) throw error;
-
-          const userRole = profileData.role === 'admin' ? 'admin' : 'user';
-
-          setSession({
-            accessToken: supabaseSession.access_token,
-            user: {
-              id: profileData.id,
-              firstName: profileData.first_name,
-              lastName: profileData.last_name,
-              email: profileData.email,
-              avatarUrl: profileData.avatar_url,
-              role: userRole,
-            },
-          });
-        }
-      } catch (error) {
-        console.error('Error fetching session:', error);
-        setSession(null);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    checkSession();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, supabaseSession) => {
-      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-        if (supabaseSession) {
           try {
             const { data: profileData, error } = await supabase
               .from('profiles')
@@ -69,7 +35,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               .eq('id', supabaseSession.user.id)
               .single();
 
-            if (error) throw error;
+            if (error) {
+              console.error('Error fetching profile:', error);
+              setSession(null);
+              setIsLoading(false);
+              return;
+            }
 
             const userRole = profileData.role === 'admin' ? 'admin' : 'user';
 
@@ -85,12 +56,63 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               },
             });
           } catch (error) {
+            console.error('Error in session check:', error);
+            setSession(null);
+          }
+        } else {
+          setSession(null);
+        }
+      } catch (error) {
+        console.error('Error checking session:', error);
+        setSession(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkSession();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, supabaseSession) => {
+      console.log('Auth state changed:', event);
+      
+      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+        if (supabaseSession) {
+          try {
+            const { data: profileData, error } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', supabaseSession.user.id)
+              .single();
+
+            if (error) {
+              console.error('Error fetching profile after state change:', error);
+              setSession(null);
+              return;
+            }
+
+            const userRole = profileData.role === 'admin' ? 'admin' : 'user';
+
+            setSession({
+              accessToken: supabaseSession.access_token,
+              user: {
+                id: profileData.id,
+                firstName: profileData.first_name,
+                lastName: profileData.last_name,
+                email: profileData.email,
+                avatarUrl: profileData.avatar_url,
+                role: userRole,
+              },
+            });
+            
+            console.log('Session updated after auth state change');
+          } catch (error) {
             console.error('Error fetching user profile:', error);
             setSession(null);
           }
         }
       } else if (event === 'SIGNED_OUT') {
         setSession(null);
+        console.log('User signed out');
       }
     });
 
@@ -101,14 +123,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signIn = async (email: string, password: string) => {
     try {
+      console.log('Attempting sign in with:', email);
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (error) throw error;
+      console.log('Sign in successful');
       return { error: null };
     } catch (error: any) {
+      console.error('Sign in error:', error);
       toast.error('Η σύνδεση απέτυχε: ' + error.message);
       return { error };
     }

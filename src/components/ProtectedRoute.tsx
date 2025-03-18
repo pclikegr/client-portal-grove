@@ -20,9 +20,13 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     const checkAuth = () => {
       if (!isLoading) {
         if (!session) {
+          console.log('No session, redirecting to auth');
           navigate('/auth', { replace: true });
         } else if (session?.user && !allowedRoles.includes(session.user.role as 'user' | 'admin')) {
+          console.log('User not authorized, redirecting to home');
           navigate('/', { replace: true });
+        } else {
+          console.log('User is authenticated and authorized');
         }
       }
     };

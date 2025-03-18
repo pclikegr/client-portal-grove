@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,6 +8,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Eye, EyeOff, Loader2, Github, Mail, Chrome } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
+import { toast } from 'sonner';
 
 const Auth: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -19,7 +19,7 @@ const Auth: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [authMethod, setAuthMethod] = useState<'login' | 'register'>('login');
   
-  const { signIn, signUp, session, signInWithOAuth } = useAuth();
+  const { signIn, signUp, session } = useAuth();
   const navigate = useNavigate();
   
   useEffect(() => {
@@ -30,35 +30,62 @@ const Auth: React.FC = () => {
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) return;
+    if (!email || !password) {
+      toast.error('Παρακαλώ συμπληρώστε όλα τα πεδία');
+      return;
+    }
     
     setIsSubmitting(true);
-    const { error } = await signIn(email, password);
-    setIsSubmitting(false);
-    
-    if (!error) {
-      navigate('/');
+    try {
+      const { error } = await signIn(email, password);
+      
+      if (error) {
+        toast.error(`Σφάλμα σύνδεσης: ${error.message}`);
+      } else {
+        toast.success('Επιτυχής σύνδεση!');
+        navigate('/');
+      }
+    } catch (err) {
+      console.error('Login error:', err);
+      toast.error('Προέκυψε ένα σφάλμα κατά τη σύνδεση');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password || !firstName || !lastName) return;
+    if (!email || !password || !firstName || !lastName) {
+      toast.error('Παρακαλώ συμπληρώστε όλα τα πεδία');
+      return;
+    }
     
     setIsSubmitting(true);
-    const { error } = await signUp(email, password, firstName, lastName);
-    setIsSubmitting(false);
-    
-    if (!error) {
-      // Μετά την επιτυχή εγγραφή, μεταφερόμαστε στο login tab
-      setAuthMethod('login');
+    try {
+      const { error } = await signUp(email, password, firstName, lastName);
+      
+      if (!error) {
+        toast.success('Η εγγραφή ολοκληρώθηκε με επιτυχία!');
+        setAuthMethod('login');
+      }
+    } catch (err) {
+      console.error('Signup error:', err);
+      toast.error('Προέκυψε ένα σφάλμα κατά την εγγραφή');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleOAuthSignIn = async (provider: 'google' | 'facebook' | 'github') => {
     setIsSubmitting(true);
-    await signInWithOAuth(provider);
-    setIsSubmitting(false);
+    try {
+      await signInWithOAuth(provider);
+    } catch (err) {
+      console.error(`${provider} login error:`, err);
+      toast.error(`Προέκυψε ένα σφάλμα κατά τη σύνδεση με ${provider}`);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const togglePasswordVisibility = () => {
