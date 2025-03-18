@@ -103,7 +103,7 @@ const EditClient: React.FC = () => {
         <div className="mb-6 animate-fade-in">
           <h1 className="text-2xl font-bold">Επεξεργασία Πελάτη</h1>
           <p className="text-muted-foreground mt-1">
-            Επεξεργαστείτε τα στοιχεία του πελάτη {client?.firstName} {client?.lastName}.
+            Επεξεργαστείτε τα στοιχεία του πελάτη {client?.first_name} {client?.last_name}.
           </p>
         </div>
         

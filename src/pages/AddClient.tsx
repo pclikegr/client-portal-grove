@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { addClient } from '@/data/clients';
@@ -21,7 +20,10 @@ const AddClient: React.FC = () => {
     setIsLoading(true);
     
     try {
-      const newClient = addClient(data);
+      const newClient = addClient({
+        ...data,
+        user_id: '1' // Default user ID for mock data
+      });
       setNewClientId(newClient.id);
       
       toast({
@@ -29,7 +31,6 @@ const AddClient: React.FC = () => {
         description: "Ο πελάτης προστέθηκε επιτυχώς. Μπορείτε τώρα να προσθέσετε συσκευή.",
       });
       
-      // Μετάβαση στην καρτέλα συσκευής
       setActiveTab('device');
     } catch (error) {
       console.error('Σφάλμα κατά την προσθήκη:', error);
@@ -55,7 +56,6 @@ const AddClient: React.FC = () => {
         description: "Η συσκευή προστέθηκε επιτυχώς.",
       });
       
-      // Μετάβαση στη σελίδα του πελάτη
       navigate(`/clients/${newClientId}`);
     } catch (error) {
       console.error('Σφάλμα κατά την προσθήκη συσκευής:', error);

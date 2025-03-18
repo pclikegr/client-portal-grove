@@ -86,7 +86,7 @@ const AddDevice: React.FC = () => {
           <h1 className="text-2xl font-bold">Προσθήκη Νέας Συσκευής</h1>
           {client ? (
             <p className="text-muted-foreground mt-1">
-              Προσθήκη συσκευής για τον πελάτη: {client.firstName} {client.lastName}
+              Προσθήκη συσκευής για τον πελάτη: {client.first_name} {client.last_name}
             </p>
           ) : (
             <p className="text-muted-foreground mt-1">

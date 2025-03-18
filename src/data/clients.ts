@@ -94,19 +94,20 @@ export const getClientById = (id: string): Client | undefined => {
   return clientsData.find(client => client.id === id);
 };
 
-export const addClient = (client: Omit<Client, 'id' | 'createdAt' | 'updatedAt'>): Client => {
+export const addClient = (client: Omit<Client, 'id' | 'created_at' | 'updated_at' | 'user_id'>): Client => {
   const newClient: Client = {
     ...client,
     id: Date.now().toString(),
-    createdAt: new Date(),
-    updatedAt: new Date()
+    user_id: '1', // Default user ID for mock data
+    created_at: new Date(),
+    updated_at: new Date()
   };
   
   clientsData = [...clientsData, newClient];
   return newClient;
 };
 
-export const updateClient = (id: string, updates: Partial<Omit<Client, 'id' | 'createdAt' | 'updatedAt'>>): Client | undefined => {
+export const updateClient = (id: string, updates: Partial<Omit<Client, 'id' | 'created_at' | 'updated_at'>>): Client | undefined => {
   const index = clientsData.findIndex(client => client.id === id);
   
   if (index === -1) return undefined;
@@ -114,7 +115,7 @@ export const updateClient = (id: string, updates: Partial<Omit<Client, 'id' | 'c
   const updatedClient: Client = {
     ...clientsData[index],
     ...updates,
-    updatedAt: new Date()
+    updated_at: new Date()
   };
   
   clientsData[index] = updatedClient;

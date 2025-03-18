@@ -91,7 +91,7 @@ const AddTechnicalReport: React.FC = () => {
         <div className="mb-6 animate-fade-in">
           <h1 className="text-2xl font-bold">Νέο Δελτίο Τεχνικού Ελέγχου</h1>
           <p className="text-muted-foreground mt-1">
-            Συσκευή: {device.brand} {device.model} | Πελάτης: {client.firstName} {client.lastName}
+            Συσκευή: {device.brand} {device.model} | Πελάτης: {client.first_name} {client.last_name}
           </p>
         </div>
         

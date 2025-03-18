@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { getTechnicalReportById, deleteTechnicalReport } from '@/data/technicalReports';
@@ -103,7 +102,7 @@ const ViewTechnicalReport: React.FC = () => {
               <div className="mb-6">
                 <h2 className="text-md font-medium mb-2">Στοιχεία Πελάτη</h2>
                 <p>
-                  <span className="font-medium">Ονοματεπώνυμο:</span> {client.firstName} {client.lastName}
+                  <span className="font-medium">Ονοματεπώνυμο:</span> {client.first_name} {client.last_name}
                 </p>
                 <p>
                   <span className="font-medium">Email:</span> {client.email}

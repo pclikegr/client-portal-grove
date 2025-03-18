@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { getDeviceById, deleteDevice } from '@/data/devices';
@@ -256,7 +255,7 @@ const ViewDevice: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">Όνομα</p>
-                    <p>{client.firstName} {client.lastName}</p>
+                    <p>{client.first_name} {client.last_name}</p>
                   </div>
                   
                   <div>
