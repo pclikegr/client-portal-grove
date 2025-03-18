@@ -44,8 +44,8 @@ const Auth: React.FC = () => {
       const { error } = await signIn(email, password);
       
       if (error) {
-        toast.error(`Σφάλμα σύνδεσης: ${error.message}`);
         console.error('Sign in error:', error);
+        toast.error(`Σφάλμα σύνδεσης: ${error.message}`);
       } else {
         toast.success('Επιτυχής σύνδεση!');
       }
@@ -66,11 +66,17 @@ const Auth: React.FC = () => {
     
     setIsSubmitting(true);
     try {
-      const { error } = await signUp(email, password, firstName, lastName);
+      const { error, user } = await signUp(email, password, firstName, lastName);
       
-      if (!error) {
+      if (error) {
+        console.error('Signup error:', error);
+        toast.error(`Σφάλμα εγγραφής: ${error.message}`);
+      } else {
         toast.success('Η εγγραφή ολοκληρώθηκε με επιτυχία!');
-        setAuthMethod('login');
+        if (user) {
+        } else {
+          setAuthMethod('login');
+        }
       }
     } catch (err) {
       console.error('Signup error:', err);
@@ -84,7 +90,12 @@ const Auth: React.FC = () => {
     setIsSubmitting(true);
     try {
       console.log(`Attempting sign in with ${provider}`);
-      await signInWithOAuth(provider);
+      const { error } = await signInWithOAuth(provider);
+      
+      if (error) {
+        console.error(`${provider} login error:`, error);
+        toast.error(`Προέκυψε ένα σφάλμα κατά τη σύνδεση με ${provider}: ${error.message}`);
+      }
     } catch (err) {
       console.error(`${provider} login error:`, err);
       toast.error(`Προέκυψε ένα σφάλμα κατά τη σύνδεση με ${provider}`);

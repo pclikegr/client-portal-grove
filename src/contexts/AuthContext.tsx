@@ -173,7 +173,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         firstName,
         lastName,
         email,
-        role: 'user'
+        role: 'user' as const
       } : null;
       
       return { error: null, user: userProfile };

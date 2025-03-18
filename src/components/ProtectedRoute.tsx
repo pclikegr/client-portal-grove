@@ -19,15 +19,21 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   
   useEffect(() => {
     // Add more detailed logging
-    console.log('ProtectedRoute - Auth state:', { session, isLoading });
+    console.log('ProtectedRoute - Auth state:', { 
+      session, 
+      isLoading, 
+      hasSession: Boolean(session),
+      hasUser: Boolean(session?.user),
+      userRole: session?.user?.role
+    });
     
     if (!isLoading) {
       if (!session || !session.user) {
         console.log('No session, redirecting to auth');
         navigate('/auth', { replace: true });
         setIsAuthorized(false);
-      } else if (!allowedRoles.includes(session.user.role as 'user' | 'admin')) {
-        console.log('User not authorized, redirecting to home');
+      } else if (!allowedRoles.includes(session.user.role)) {
+        console.log('User not authorized, redirecting to home. Role:', session.user.role, 'Allowed roles:', allowedRoles);
         navigate('/', { replace: true });
         setIsAuthorized(false);
       } else {
