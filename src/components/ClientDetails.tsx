@@ -1,4 +1,3 @@
-
 import { Client } from '@/types/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -19,7 +18,7 @@ const ClientDetails: React.FC<ClientDetailsProps> = ({ client }) => {
         <div className="flex justify-between items-start">
           <div>
             <CardTitle className="text-2xl font-bold">
-              {client.firstName} {client.lastName}
+              {client.first_name} {client.last_name}
             </CardTitle>
             {client.company && client.position && (
               <CardDescription className="mt-1">
@@ -58,14 +57,14 @@ const ClientDetails: React.FC<ClientDetailsProps> = ({ client }) => {
                 </div>
               </div>
               
-              {(client.address || client.city || client.country) && (
+              {(client.address || client.city || client.zip_code || client.country) && (
                 <div className="flex items-start gap-3">
                   <MapPin className="h-5 w-5 text-muted-foreground" />
                   <div>
                     {client.address && <p className="font-medium">{client.address}</p>}
-                    {client.city && client.zipCode && (
+                    {client.city && client.zip_code && (
                       <p className="font-medium">
-                        {client.city}, {client.zipCode}
+                        {client.city}, {client.zip_code}
                       </p>
                     )}
                     {client.country && <p className="font-medium">{client.country}</p>}
@@ -104,12 +103,10 @@ const ClientDetails: React.FC<ClientDetailsProps> = ({ client }) => {
                   <Calendar className="h-5 w-5 text-muted-foreground" />
                   <div>
                     <p className="text-sm">
-                      Δημιουργήθηκε στις{' '}
-                      {format(new Date(client.createdAt), 'PP', { locale: el })}
+                      Δημιουργήθηκε στις {format(client.created_at, 'PP', { locale: el })}
                     </p>
                     <p className="text-sm">
-                      Τελευταία ενημέρωση στις{' '}
-                      {format(new Date(client.updatedAt), 'PP', { locale: el })}
+                      Τελευταία ενημέρωση στις {format(client.updated_at, 'PP', { locale: el })}
                     </p>
                   </div>
                 </div>

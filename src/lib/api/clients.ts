@@ -2,6 +2,12 @@
 import { supabase } from "@/integrations/supabase/client";
 import { Client, CreateClientData, UpdateClientData } from "@/types/client";
 
+const mapClient = (data: any): Client => ({
+  ...data,
+  created_at: new Date(data.created_at),
+  updated_at: new Date(data.updated_at)
+});
+
 export const getClients = async (): Promise<Client[]> => {
   const { data, error } = await supabase
     .from('clients')
@@ -9,7 +15,7 @@ export const getClients = async (): Promise<Client[]> => {
     .order('created_at', { ascending: false });
 
   if (error) throw error;
-  return data || [];
+  return (data || []).map(mapClient);
 };
 
 export const getClientById = async (id: string): Promise<Client | null> => {
@@ -20,7 +26,7 @@ export const getClientById = async (id: string): Promise<Client | null> => {
     .single();
 
   if (error) throw error;
-  return data;
+  return data ? mapClient(data) : null;
 };
 
 export const addClient = async (clientData: CreateClientData): Promise<Client> => {
@@ -33,7 +39,7 @@ export const addClient = async (clientData: CreateClientData): Promise<Client> =
     .single();
 
   if (error) throw error;
-  return data;
+  return mapClient(data);
 };
 
 export const updateClient = async (id: string, updates: UpdateClientData): Promise<Client> => {
@@ -45,7 +51,7 @@ export const updateClient = async (id: string, updates: UpdateClientData): Promi
     .single();
 
   if (error) throw error;
-  return data;
+  return mapClient(data);
 };
 
 export const deleteClient = async (id: string): Promise<boolean> => {
@@ -65,5 +71,5 @@ export const searchClients = async (query: string): Promise<Client[]> => {
     .or(`first_name.ilike.%${query}%,last_name.ilike.%${query}%,email.ilike.%${query}%,company.ilike.%${query}%`);
 
   if (error) throw error;
-  return data || [];
+  return (data || []).map(mapClient);
 };

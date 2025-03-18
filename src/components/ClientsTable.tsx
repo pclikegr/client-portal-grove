@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Client } from '@/types/client';
@@ -15,10 +14,9 @@ interface ClientsTableProps {
 
 const ClientsTable: React.FC<ClientsTableProps> = ({ clients, onDelete }) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortField, setSortField] = useState<keyof Client>('lastName');
+  const [sortField, setSortField] = useState<keyof Client>('last_name');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
-  // Φιλτράρισμα πελατών βάσει αναζήτησης
   const filteredClients = clients.filter(client => {
     const query = searchQuery.toLowerCase();
     return (
@@ -30,7 +28,6 @@ const ClientsTable: React.FC<ClientsTableProps> = ({ clients, onDelete }) => {
     );
   });
 
-  // Ταξινόμηση πελατών
   const sortedClients = [...filteredClients].sort((a, b) => {
     const fieldA = a[sortField];
     const fieldB = b[sortField];
@@ -103,11 +100,11 @@ const ClientsTable: React.FC<ClientsTableProps> = ({ clients, onDelete }) => {
               <tr className="border-b border-border">
                 <th 
                   className="px-4 py-3 text-left font-medium text-muted-foreground cursor-pointer hover:text-foreground"
-                  onClick={() => handleSort('lastName')}
+                  onClick={() => handleSort('last_name')}
                 >
                   <div className="flex items-center">
                     <span>Ονοματεπώνυμο</span>
-                    <SortIcon field="lastName" />
+                    <SortIcon field="last_name" />
                   </div>
                 </th>
                 <th 
@@ -151,7 +148,7 @@ const ClientsTable: React.FC<ClientsTableProps> = ({ clients, onDelete }) => {
                   >
                     <td className="px-4 py-3">
                       <div className="font-medium">
-                        {client.lastName} {client.firstName}
+                        {client.last_name} {client.first_name}
                       </div>
                     </td>
                     <td className="px-4 py-3 text-muted-foreground">
