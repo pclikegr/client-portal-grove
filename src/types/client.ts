@@ -1,3 +1,4 @@
+
 export interface Client {
   id: string;
   user_id: string;
@@ -55,6 +56,7 @@ export interface Device {
   createdAt: Date;
   updatedAt: Date;
   receivedAt?: Date; // Ημερομηνία εισαγωγής/παραλαβής της συσκευής
+  returnedAt?: Date; // Ημερομηνία επιστροφής της συσκευής στον πελάτη
 }
 
 export interface CreateDeviceData {
@@ -71,6 +73,7 @@ export interface UpdateDeviceData extends Partial<CreateDeviceData> {
   id: string;
   status?: 'pending' | 'in_progress' | 'completed' | 'cancelled';
   technicalReportId?: string;
+  returnedAt?: Date; // Προσθήκη ημερομηνίας επιστροφής
 }
 
 export interface TechnicalReport {

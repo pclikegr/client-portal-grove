@@ -42,6 +42,7 @@ const deviceSchema = z.object({
   problem: z.string().min(5, { message: 'Η περιγραφή του προβλήματος πρέπει να έχει τουλάχιστον 5 χαρακτήρες' }),
   status: z.enum(['pending', 'in_progress', 'completed', 'cancelled']).optional(),
   receivedAt: z.date().optional(),
+  returnedAt: z.date().optional(),
 });
 
 const technicalReportSchema = z.object({
@@ -102,6 +103,7 @@ const DeviceForm: React.FC<DeviceFormProps> = ({
         problem: device?.problem || '',
         status: device?.status || 'pending',
         receivedAt: device?.receivedAt || new Date(),
+        returnedAt: device?.returnedAt,
       },
       report: {
         diagnosis: '',
@@ -263,6 +265,51 @@ const DeviceForm: React.FC<DeviceFormProps> = ({
                   </FormItem>
                 )}
               />
+
+              {isEditing && (
+                <FormField
+                  control={form.control}
+                  name="device.returnedAt"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel>Ημερομηνία Επιστροφής</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant={"outline"}
+                              className={cn(
+                                "w-full pl-3 text-left font-normal",
+                                !field.value && "text-muted-foreground"
+                              )}
+                            >
+                              {field.value ? (
+                                format(field.value, "PPP")
+                              ) : (
+                                <span>Επιλέξτε ημερομηνία</span>
+                              )}
+                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={field.value}
+                            onSelect={field.onChange}
+                            initialFocus
+                            className={cn("p-3 pointer-events-auto")}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <FormDescription>
+                        Συμπληρώστε όταν ο πελάτης παραλάβει τη συσκευή
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
 
               <FormField
                 control={form.control}

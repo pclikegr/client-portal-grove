@@ -13,7 +13,8 @@ export const devices: Device[] = [
     problem: "Δεν ανάβει η οθόνη",
     status: "in_progress",
     createdAt: new Date("2023-05-15"),
-    updatedAt: new Date("2023-05-15")
+    updatedAt: new Date("2023-05-15"),
+    receivedAt: new Date("2023-05-14")
   },
   {
     id: "2",
@@ -26,7 +27,9 @@ export const devices: Device[] = [
     status: "completed",
     technicalReportId: "1",
     createdAt: new Date("2023-04-10"),
-    updatedAt: new Date("2023-04-12")
+    updatedAt: new Date("2023-04-12"),
+    receivedAt: new Date("2023-04-09"),
+    returnedAt: new Date("2023-04-13")
   },
   {
     id: "3",
@@ -38,7 +41,8 @@ export const devices: Device[] = [
     problem: "Αργή λειτουργία και υπερθέρμανση",
     status: "pending",
     createdAt: new Date("2023-05-20"),
-    updatedAt: new Date("2023-05-20")
+    updatedAt: new Date("2023-05-20"),
+    receivedAt: new Date("2023-05-19")
   },
   {
     id: "4",
@@ -50,7 +54,8 @@ export const devices: Device[] = [
     problem: "Δεν φορτίζει",
     status: "in_progress",
     createdAt: new Date("2023-05-18"),
-    updatedAt: new Date("2023-05-18")
+    updatedAt: new Date("2023-05-18"),
+    receivedAt: new Date("2023-05-17")
   }
 ];
 
