@@ -20,10 +20,7 @@ const AddClient: React.FC = () => {
     setIsLoading(true);
     
     try {
-      const newClient = addClient({
-        ...data,
-        user_id: '1' // Default user ID for mock data
-      });
+      const newClient = addClient(data);
       setNewClientId(newClient.id);
       
       toast({
