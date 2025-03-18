@@ -1,17 +1,17 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { UserPlus } from 'lucide-react';
 import ClientsTable from '@/components/ClientsTable';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getClients, deleteClient } from '@/lib/api/clients';
+import { getClients, deleteClient } from '@/data/clients';
 import { toast } from '@/components/ui/use-toast';
 
 const Clients: React.FC = () => {
   const queryClient = useQueryClient();
   
-  const { data: clients = [], isLoading } = useQuery({
+  const { data: clients = [], isLoading, error } = useQuery({
     queryKey: ['clients'],
     queryFn: getClients
   });
@@ -26,6 +26,7 @@ const Clients: React.FC = () => {
       });
     },
     onError: (error: Error) => {
+      console.error("Delete client error:", error);
       toast({
         title: "Σφάλμα",
         description: `Υπήρξε ένα πρόβλημα κατά τη διαγραφή: ${error.message}`,
@@ -39,6 +40,20 @@ const Clients: React.FC = () => {
       deleteMutation.mutate(id);
     }
   };
+  
+  if (error) {
+    console.error("Client fetching error:", error);
+    return (
+      <div className="min-h-screen pt-20 px-4 md:px-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="bg-destructive/10 p-4 rounded border border-destructive text-destructive">
+            <h2 className="text-lg font-semibold">Σφάλμα φόρτωσης</h2>
+            <p>Υπήρξε πρόβλημα κατά τη φόρτωση των πελατών. Παρακαλώ προσπαθήστε ξανά.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
   
   if (isLoading) {
     return (
@@ -71,10 +86,20 @@ const Clients: React.FC = () => {
           </Link>
         </div>
         
-        <ClientsTable 
-          clients={clients} 
-          onDelete={handleDelete} 
-        />
+        {clients.length === 0 ? (
+          <div className="text-center p-8 border rounded-lg bg-muted/20">
+            <h2 className="text-lg font-medium mb-2">Δεν βρέθηκαν πελάτες</h2>
+            <p className="text-muted-foreground mb-4">Δεν υπάρχουν καταχωρημένοι πελάτες.</p>
+            <Link to="/clients/add">
+              <Button>Προσθήκη πρώτου πελάτη</Button>
+            </Link>
+          </div>
+        ) : (
+          <ClientsTable 
+            clients={clients} 
+            onDelete={handleDelete} 
+          />
+        )}
       </div>
     </div>
   );

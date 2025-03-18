@@ -29,7 +29,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Add this useEffect for debugging session state
   useEffect(() => {
-    console.log('AuthProvider: session state updated', { hasUser: !!session?.user, isLoading });
+    console.log('AuthProvider: session state updated', { 
+      hasUser: !!session?.user, 
+      userId: session?.user?.id || 'no user', 
+      isLoading 
+    });
   }, [session, isLoading]);
 
   const signIn = async (email: string, password: string) => {
@@ -79,7 +83,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const updateProfile = async (data: Partial<UserProfile>) => {
+    console.log('AuthContext: updateProfile called with data:', data);
     if (!session?.user) {
+      console.error('AuthContext: updateProfile failed - no user logged in');
       return { error: new Error('Δεν υπάρχει συνδεδεμένος χρήστης') };
     }
 
@@ -87,6 +93,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const { error } = await updateUserProfile(session.user.id, data);
       
       if (!error) {
+        console.log('AuthContext: profile updated successfully');
         setSession((prevSession) => {
           if (!prevSession) return prevSession;
           return {
@@ -97,6 +104,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             },
           };
         });
+      } else {
+        console.error('AuthContext: updateProfile error:', error);
       }
 
       return { error };
@@ -116,7 +125,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signInWithOAuth,
   };
 
-  console.log('AuthContext rendering with session:', session?.user?.id, 'isLoading:', isLoading);
+  console.log('AuthContext rendering with session:', session?.user?.id || 'no user', 'isLoading:', isLoading);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

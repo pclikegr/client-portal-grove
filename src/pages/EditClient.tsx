@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { getClientById, updateClient } from '@/data/clients';
@@ -11,18 +12,22 @@ const EditClient: React.FC = () => {
   const [client, setClient] = useState<Client | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isNotFound, setIsNotFound] = useState(false);
+  const [isDataLoading, setIsDataLoading] = useState(true);
   
   useEffect(() => {
     const loadClient = async () => {
       if (!id) {
         setIsNotFound(true);
+        setIsDataLoading(false);
         return;
       }
       
       try {
+        console.log(`Loading client with ID: ${id}`);
         const clientData = await getClientById(id);
         
         if (!clientData) {
+          console.log(`Client not found with ID: ${id}`);
           setIsNotFound(true);
           toast({
             title: "Σφάλμα",
@@ -30,35 +35,41 @@ const EditClient: React.FC = () => {
             variant: "destructive",
           });
         } else {
+          console.log(`Client loaded successfully:`, clientData);
           setClient(clientData);
         }
       } catch (error) {
         console.error('Error loading client:', error);
         setIsNotFound(true);
+        toast({
+          title: "Σφάλμα",
+          description: "Υπήρξε πρόβλημα κατά τη φόρτωση του πελάτη.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsDataLoading(false);
       }
     };
 
     loadClient();
   }, [id]);
   
-  const handleSubmit = (data: UpdateClientData) => {
+  const handleSubmit = async (data: UpdateClientData) => {
     if (!id) return;
     
     setIsLoading(true);
     
     try {
-      const updatedClient = updateClient(id, data);
+      console.log(`Updating client ${id} with data:`, data);
+      const updatedClient = await updateClient(id, data);
       
-      if (updatedClient) {
-        toast({
-          title: "Επιτυχής ενημέρωση",
-          description: "Τα στοιχεία του πελάτη ενημερώθηκαν επιτυχώς.",
-        });
-        
-        navigate(`/clients/${id}`);
-      } else {
-        throw new Error('Αποτυχία ενημέρωσης πελάτη');
-      }
+      console.log("Client updated successfully:", updatedClient);
+      toast({
+        title: "Επιτυχής ενημέρωση",
+        description: "Τα στοιχεία του πελάτη ενημερώθηκαν επιτυχώς.",
+      });
+      
+      navigate(`/clients/${id}`);
     } catch (error) {
       console.error('Σφάλμα κατά την ενημέρωση:', error);
       
@@ -91,7 +102,7 @@ const EditClient: React.FC = () => {
     );
   }
   
-  if (!client) {
+  if (isDataLoading) {
     return (
       <div className="min-h-screen pt-20 px-4 md:px-8">
         <div className="max-w-3xl mx-auto">

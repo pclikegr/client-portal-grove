@@ -10,63 +10,83 @@ const convertDatesToClient = (data: any): Client => ({
 });
 
 export const getClients = async (): Promise<Client[]> => {
+  console.log("Fetching clients from data/clients.ts");
   const { data, error } = await supabase
     .from('clients')
     .select('*')
     .order('created_at', { ascending: false });
 
-  if (error) throw error;
+  if (error) {
+    console.error("Error fetching clients:", error);
+    throw error;
+  }
+  
   return (data || []).map(convertDatesToClient);
 };
 
 export const getClientById = async (id: string): Promise<Client | null> => {
+  console.log(`Fetching client with id ${id} from data/clients.ts`);
   const { data, error } = await supabase
     .from('clients')
     .select('*')
     .eq('id', id)
-    .single();
+    .maybeSingle();
 
-  if (error) throw error;
+  if (error) {
+    console.error(`Error fetching client ${id}:`, error);
+    throw error;
+  }
+  
   return data ? convertDatesToClient(data) : null;
 };
 
 export const addClient = async (clientData: Omit<Client, 'id' | 'created_at' | 'updated_at' | 'user_id'>): Promise<Client> => {
-  // Get current user
-  const { data: userData, error: userError } = await supabase.auth.getUser();
+  console.log("Adding client from data/clients.ts:", clientData);
   
-  if (userError) {
-    console.error('Error getting current user:', userError);
-    throw userError;
-  }
-  
-  if (!userData || !userData.user) {
-    console.error('No authenticated user found');
-    throw new Error('No authenticated user');
-  }
-  
-  const userId = userData.user.id;
-  console.log('Adding client for user:', userId);
-  
-  // Insert client with user_id
-  const { data, error } = await supabase
-    .from('clients')
-    .insert([{ ...clientData, user_id: userId }])
-    .select()
-    .single();
+  try {
+    // Get current user
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    
+    if (userError) {
+      console.error('Error getting current user:', userError);
+      throw userError;
+    }
+    
+    if (!userData || !userData.user) {
+      console.error('No authenticated user found');
+      throw new Error('No authenticated user');
+    }
+    
+    const userId = userData.user.id;
+    console.log('Adding client for user:', userId);
+    
+    // Insert client with user_id
+    const { data, error } = await supabase
+      .from('clients')
+      .insert([{ ...clientData, user_id: userId }])
+      .select()
+      .single();
 
-  if (error) {
-    console.error('Error adding client:', error);
+    if (error) {
+      console.error('Error adding client:', error);
+      throw error;
+    }
+
+    if (!data) {
+      throw new Error('Failed to create client - no data returned');
+    }
+
+    console.log("Client added successfully:", data);
+    return convertDatesToClient(data);
+  } catch (error) {
+    console.error("Error in addClient:", error);
     throw error;
   }
-
-  if (!data) {
-    throw new Error('Failed to create client - no data returned');
-  }
-
-  return convertDatesToClient(data);
 };
 
 export const updateClient = async (id: string, updates: Partial<Omit<Client, 'id' | 'created_at' | 'updated_at' | 'user_id'>>): Promise<Client> => {
+  console.log(`Updating client ${id} with:`, updates);
+  
   const { data, error } = await supabase
     .from('clients')
     .update(updates)
@@ -74,30 +94,48 @@ export const updateClient = async (id: string, updates: Partial<Omit<Client, 'id
     .select()
     .single();
 
-  if (error) throw error;
+  if (error) {
+    console.error(`Error updating client ${id}:`, error);
+    throw error;
+  }
+  
   return convertDatesToClient(data);
 };
 
 export const deleteClient = async (id: string): Promise<boolean> => {
+  console.log(`Deleting client ${id}`);
+  
   const { error } = await supabase
     .from('clients')
     .delete()
     .eq('id', id);
 
-  if (error) throw error;
+  if (error) {
+    console.error(`Error deleting client ${id}:`, error);
+    throw error;
+  }
+  
   return true;
 };
 
 export const searchClients = async (query: string): Promise<Client[]> => {
-  const searchTerms = query.toLowerCase().split(' ').filter(term => term);
+  console.log(`Searching clients with query: ${query}`);
   
-  if (!searchTerms.length) return getClients();
+  if (!query || query.trim() === '') {
+    return getClients();
+  }
+  
+  const searchTerm = query.toLowerCase().trim();
   
   const { data, error } = await supabase
     .from('clients')
     .select('*')
-    .or(`first_name.ilike.%${query}%,last_name.ilike.%${query}%,email.ilike.%${query}%,company.ilike.%${query}%`);
+    .or(`first_name.ilike.%${searchTerm}%,last_name.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%,company.ilike.%${searchTerm}%`);
 
-  if (error) throw error;
+  if (error) {
+    console.error("Error searching clients:", error);
+    throw error;
+  }
+  
   return (data || []).map(convertDatesToClient);
 };
