@@ -27,6 +27,7 @@ export const fetchUserProfile = async (userId: string) => {
  * Create a session object from profile data
  */
 export const createSessionFromProfile = (profileData: any, accessToken: string): Session => {
+  console.log('Creating session from profile data:', profileData);
   // Ensure role is either "user" or "admin"
   const userRole = profileData.role === 'admin' ? 'admin' as const : 'user' as const;
 

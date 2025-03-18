@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { AuthContextType } from '@/types/auth';
@@ -43,8 +42,8 @@ export const useLoginForm = (signIn: AuthContextType['signIn']) => {
       } else {
         console.log('Sign in successful, redirection should happen automatically');
         toast.success('Επιτυχής σύνδεση!');
-        // Το setIsSubmitting παραμένει true καθώς περιμένουμε το redirect
-        // που θα γίνει αυτόματα από το Auth component όταν ενημερωθεί το session
+        // We're keeping isSubmitting true as we wait for the redirect
+        // which will happen automatically when the session is updated
       }
     } catch (err) {
       console.error('Login error:', err);

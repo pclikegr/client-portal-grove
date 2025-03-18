@@ -18,29 +18,37 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
   
   useEffect(() => {
-    // Add more detailed logging
-    console.log('ProtectedRoute - Auth state:', { 
-      session, 
-      isLoading, 
-      hasSession: Boolean(session),
-      hasUser: Boolean(session?.user),
-      userRole: session?.user?.role
-    });
-    
-    if (!isLoading) {
-      if (!session || !session.user) {
-        console.log('No session, redirecting to auth');
-        navigate('/auth', { replace: true });
-        setIsAuthorized(false);
-      } else if (!allowedRoles.includes(session.user.role)) {
-        console.log('User not authorized, redirecting to home. Role:', session.user.role, 'Allowed roles:', allowedRoles);
-        navigate('/', { replace: true });
-        setIsAuthorized(false);
-      } else {
+    const checkAuth = () => {
+      // Add detailed logging for debugging
+      console.log('ProtectedRoute - Auth state:', { 
+        session, 
+        isLoading, 
+        hasSession: Boolean(session),
+        hasUser: Boolean(session?.user),
+        userRole: session?.user?.role
+      });
+      
+      if (!isLoading) {
+        if (!session || !session.user) {
+          console.log('No session, redirecting to auth');
+          navigate('/auth', { replace: true });
+          setIsAuthorized(false);
+          return;
+        }
+        
+        if (!allowedRoles.includes(session.user.role)) {
+          console.log('User not authorized, redirecting to home. Role:', session.user.role, 'Allowed roles:', allowedRoles);
+          navigate('/', { replace: true });
+          setIsAuthorized(false);
+          return;
+        }
+        
         console.log('User is authenticated and authorized:', session.user);
         setIsAuthorized(true);
       }
-    }
+    };
+    
+    checkAuth();
   }, [session, isLoading, navigate, allowedRoles]);
 
   if (isLoading) {

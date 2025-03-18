@@ -12,15 +12,24 @@ const Auth: React.FC = () => {
   const navigate = useNavigate();
   
   useEffect(() => {
-    console.log('Auth component - Current session:', session);
-    console.log('Auth component - Is loading:', isLoading);
+    console.log('Auth component - Current session state:', {
+      session: session,
+      isLoading: isLoading,
+      hasUser: Boolean(session?.user),
+      authenticatedUser: session?.user?.id
+    });
     
-    // Μόνο κάνουμε redirect όταν έχουμε session και δεν φορτώνουμε
+    // Only redirect when we have a session and we're not loading
     if (session?.user && !isLoading) {
-      console.log('User is authenticated, redirecting to home');
+      console.log('User is authenticated, redirecting to home page');
       navigate('/', { replace: true });
     }
   }, [session, isLoading, navigate]);
+
+  // If we're still loading, show some feedback
+  if (isLoading) {
+    console.log('Auth page - Loading session data...');
+  }
 
   return (
     <AuthCard>
