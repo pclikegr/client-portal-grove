@@ -5,36 +5,35 @@ import ClientForm from '@/components/ClientForm';
 import { toast } from '@/components/ui/use-toast';
 import { CreateClientData } from '@/types/client';
 import { addClient } from '@/data/clients';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 const AddClient: React.FC = () => {
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(false);
+  const queryClient = useQueryClient();
   
-  const handleSubmit = async (data: CreateClientData) => {
-    setIsLoading(true);
-    
-    try {
-      console.log("Submitting new client form with data:", data);
-      const result = await addClient(data);
-      
-      console.log("Client added successfully:", result);
+  const addClientMutation = useMutation({
+    mutationFn: addClient,
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ['clients'] });
       toast({
         title: "Επιτυχής προσθήκη",
         description: "Ο πελάτης προστέθηκε επιτυχώς στο σύστημα.",
       });
-      
       navigate(`/clients/${result.id}`);
-    } catch (error) {
+    },
+    onError: (error: Error) => {
       console.error("Error adding client:", error);
-      
       toast({
         title: "Σφάλμα",
         description: "Υπήρξε ένα πρόβλημα κατά την προσθήκη του πελάτη. Προσπαθήστε ξανά.",
         variant: "destructive",
       });
-    } finally {
-      setIsLoading(false);
     }
+  });
+  
+  const handleSubmit = async (data: CreateClientData) => {
+    console.log("Submitting new client form with data:", data);
+    addClientMutation.mutate(data);
   };
   
   return (
@@ -49,7 +48,7 @@ const AddClient: React.FC = () => {
         
         <ClientForm
           onSubmit={handleSubmit}
-          isLoading={isLoading}
+          isLoading={addClientMutation.isPending}
         />
       </div>
     </div>

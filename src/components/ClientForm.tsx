@@ -10,7 +10,13 @@ interface ClientFormProps {
   isEditing?: boolean;
 }
 
-const ClientForm: React.FC<ClientFormProps> = ({ client, onSubmit, isLoading = false, isEditing = false }) => {
+const ClientForm: React.FC<ClientFormProps> = ({ 
+  client, 
+  onSubmit, 
+  isLoading = false, 
+  isEditing = false 
+}) => {
+  // Simplified wrapper component that passes props to the container
   return (
     <ClientFormContainer
       client={client}

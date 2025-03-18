@@ -1,76 +1,43 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getClientById, updateClient } from '@/data/clients';
-import { Client, UpdateClientData } from '@/types/client';
+import { UpdateClientData } from '@/types/client';
 import ClientForm from '@/components/ClientForm';
 import { toast } from '@/components/ui/use-toast';
+import { Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 const EditClient: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [client, setClient] = useState<Client | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isNotFound, setIsNotFound] = useState(false);
-  const [isDataLoading, setIsDataLoading] = useState(true);
+  const queryClient = useQueryClient();
   
-  useEffect(() => {
-    const loadClient = async () => {
-      if (!id) {
-        setIsNotFound(true);
-        setIsDataLoading(false);
-        return;
-      }
-      
-      try {
-        console.log(`Loading client with ID: ${id}`);
-        const clientData = await getClientById(id);
-        
-        if (!clientData) {
-          console.log(`Client not found with ID: ${id}`);
-          setIsNotFound(true);
-          toast({
-            title: "Σφάλμα",
-            description: "Ο πελάτης δεν βρέθηκε.",
-            variant: "destructive",
-          });
-        } else {
-          console.log(`Client loaded successfully:`, clientData);
-          setClient(clientData);
-        }
-      } catch (error) {
-        console.error('Error loading client:', error);
-        setIsNotFound(true);
-        toast({
-          title: "Σφάλμα",
-          description: "Υπήρξε πρόβλημα κατά τη φόρτωση του πελάτη.",
-          variant: "destructive",
-        });
-      } finally {
-        setIsDataLoading(false);
-      }
-    };
-
-    loadClient();
-  }, [id]);
+  // Fetch client data
+  const { data: client, isLoading: isClientLoading, error: clientError } = useQuery({
+    queryKey: ['client', id],
+    queryFn: () => id ? getClientById(id) : null,
+    enabled: !!id,
+    retry: 1,
+    staleTime: 30000,
+  });
   
-  const handleSubmit = async (data: UpdateClientData) => {
-    if (!id) return;
-    
-    setIsLoading(true);
-    
-    try {
-      console.log(`Updating client ${id} with data:`, data);
-      const updatedClient = await updateClient(id, data);
+  // Update client mutation
+  const updateMutation = useMutation({
+    mutationFn: (data: UpdateClientData) => updateClient(id!, data),
+    onSuccess: (updatedClient) => {
+      queryClient.invalidateQueries({ queryKey: ['clients'] });
+      queryClient.invalidateQueries({ queryKey: ['client', id] });
       
-      console.log("Client updated successfully:", updatedClient);
       toast({
         title: "Επιτυχής ενημέρωση",
         description: "Τα στοιχεία του πελάτη ενημερώθηκαν επιτυχώς.",
       });
       
       navigate(`/clients/${id}`);
-    } catch (error) {
+    },
+    onError: (error: Error) => {
       console.error('Σφάλμα κατά την ενημέρωση:', error);
       
       toast({
@@ -78,12 +45,51 @@ const EditClient: React.FC = () => {
         description: "Υπήρξε ένα πρόβλημα κατά την ενημέρωση του πελάτη.",
         variant: "destructive",
       });
-    } finally {
-      setIsLoading(false);
     }
+  });
+  
+  const handleSubmit = (data: UpdateClientData) => {
+    updateMutation.mutate(data);
   };
   
-  if (isNotFound) {
+  // Handle error state
+  if (clientError || !id) {
+    return (
+      <div className="min-h-screen pt-20 px-4 md:px-8">
+        <div className="max-w-3xl mx-auto text-center">
+          <h1 className="text-2xl font-bold mb-4">Ο πελάτης δεν βρέθηκε</h1>
+          <p className="text-muted-foreground mb-6">
+            {clientError 
+              ? "Υπήρξε πρόβλημα κατά τη φόρτωση του πελάτη."
+              : "Ο πελάτης που προσπαθείτε να επεξεργαστείτε δεν υπάρχει ή έχει διαγραφεί."}
+          </p>
+          <Button 
+            onClick={() => navigate('/clients')}
+            variant="outline"
+          >
+            Επιστροφή στη λίστα πελατών
+          </Button>
+        </div>
+      </div>
+    );
+  }
+  
+  // Loading state
+  if (isClientLoading) {
+    return (
+      <div className="min-h-screen pt-20 px-4 md:px-8">
+        <div className="max-w-3xl mx-auto">
+          <div className="flex flex-col items-center justify-center py-12">
+            <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
+            <p className="text-muted-foreground">Φόρτωση στοιχείων πελάτη...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
+  // No client found
+  if (!client) {
     return (
       <div className="min-h-screen pt-20 px-4 md:px-8">
         <div className="max-w-3xl mx-auto text-center">
@@ -91,26 +97,12 @@ const EditClient: React.FC = () => {
           <p className="text-muted-foreground mb-6">
             Ο πελάτης που προσπαθείτε να επεξεργαστείτε δεν υπάρχει ή έχει διαγραφεί.
           </p>
-          <button 
+          <Button 
             onClick={() => navigate('/clients')}
-            className="text-primary hover:underline"
+            variant="outline"
           >
             Επιστροφή στη λίστα πελατών
-          </button>
-        </div>
-      </div>
-    );
-  }
-  
-  if (isDataLoading) {
-    return (
-      <div className="min-h-screen pt-20 px-4 md:px-8">
-        <div className="max-w-3xl mx-auto">
-          <div className="mb-6 animate-pulse">
-            <div className="h-8 w-48 bg-muted rounded mb-2"></div>
-            <div className="h-4 w-full bg-muted rounded"></div>
-          </div>
-          <div className="w-full h-[500px] bg-card animate-pulse rounded-lg"></div>
+          </Button>
         </div>
       </div>
     );
@@ -122,18 +114,16 @@ const EditClient: React.FC = () => {
         <div className="mb-6 animate-fade-in">
           <h1 className="text-2xl font-bold">Επεξεργασία Πελάτη</h1>
           <p className="text-muted-foreground mt-1">
-            Επεξεργαστείτε τα στοιχεία του πελάτη {client?.first_name} {client?.last_name}.
+            Επεξεργαστείτε τα στοιχεία του πελάτη {client.first_name} {client.last_name}.
           </p>
         </div>
         
-        {client && (
-          <ClientForm 
-            client={client} 
-            onSubmit={handleSubmit} 
-            isLoading={isLoading}
-            isEditing={true}
-          />
-        )}
+        <ClientForm 
+          client={client} 
+          onSubmit={handleSubmit} 
+          isLoading={updateMutation.isPending}
+          isEditing={true}
+        />
       </div>
     </div>
   );

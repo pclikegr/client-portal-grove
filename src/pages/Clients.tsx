@@ -1,8 +1,8 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { UserPlus } from 'lucide-react';
+import { UserPlus, Loader2 } from 'lucide-react';
 import ClientsTable from '@/components/ClientsTable';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getClients, deleteClient } from '@/data/clients';
@@ -13,7 +13,9 @@ const Clients: React.FC = () => {
   
   const { data: clients = [], isLoading, error } = useQuery({
     queryKey: ['clients'],
-    queryFn: getClients
+    queryFn: getClients,
+    retry: 1, // Limit retries to avoid excessive API calls on failure
+    staleTime: 30000, // Consider data fresh for 30 seconds
   });
   
   const deleteMutation = useMutation({
@@ -49,6 +51,13 @@ const Clients: React.FC = () => {
           <div className="bg-destructive/10 p-4 rounded border border-destructive text-destructive">
             <h2 className="text-lg font-semibold">Σφάλμα φόρτωσης</h2>
             <p>Υπήρξε πρόβλημα κατά τη φόρτωση των πελατών. Παρακαλώ προσπαθήστε ξανά.</p>
+            <Button 
+              onClick={() => queryClient.invalidateQueries({ queryKey: ['clients'] })}
+              variant="outline" 
+              className="mt-2"
+            >
+              Επαναφόρτωση
+            </Button>
           </div>
         </div>
       </div>
@@ -59,13 +68,9 @@ const Clients: React.FC = () => {
     return (
       <div className="min-h-screen pt-20 px-4 md:px-8">
         <div className="max-w-7xl mx-auto">
-          <div className="animate-pulse">
-            <div className="h-8 w-48 bg-muted rounded mb-6"></div>
-            <div className="space-y-4">
-              <div className="h-12 bg-muted rounded"></div>
-              <div className="h-12 bg-muted rounded"></div>
-              <div className="h-12 bg-muted rounded"></div>
-            </div>
+          <div className="flex flex-col items-center justify-center py-12">
+            <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
+            <p className="text-muted-foreground">Φόρτωση πελατών...</p>
           </div>
         </div>
       </div>

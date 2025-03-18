@@ -2,6 +2,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Loader2 } from 'lucide-react';
 
 interface ClientFormActionsProps {
   isLoading: boolean;
@@ -21,7 +22,12 @@ const ClientFormActions: React.FC<ClientFormActionsProps> = ({ isLoading }) => {
         Ακύρωση
       </Button>
       <Button type="submit" disabled={isLoading}>
-        {isLoading ? 'Αποθήκευση...' : 'Αποθήκευση'}
+        {isLoading ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Αποθήκευση...
+          </>
+        ) : 'Αποθήκευση'}
       </Button>
     </div>
   );
