@@ -1,38 +1,40 @@
+
 export interface Client {
   id: string;
-  firstName: string;
-  lastName: string;
+  user_id: string;
+  first_name: string;
+  last_name: string;
   email: string;
   phone: string;
   address?: string;
   city?: string;
-  zipCode?: string;
+  zip_code?: string;
   country?: string;
   notes?: string;
   company?: string;
   position?: string;
-  createdAt: Date;
-  updatedAt: Date;
+  created_at: Date;
+  updated_at: Date;
 }
 
 export interface CreateClientData {
-  firstName: string;
-  lastName: string;
+  first_name: string;
+  last_name: string;
   email: string;
   phone: string;
   address?: string;
   city?: string;
-  zipCode?: string;
+  zip_code?: string;
   country?: string;
   notes?: string;
   company?: string;
   position?: string;
 }
 
-export interface UpdateClientData extends Partial<Omit<CreateClientData, 'firstName' | 'lastName' | 'email' | 'phone'>> {
+export interface UpdateClientData extends Partial<Omit<CreateClientData, 'first_name' | 'last_name' | 'email' | 'phone'>> {
   id: string;
-  firstName?: string;
-  lastName?: string;
+  first_name?: string;
+  last_name?: string;
   email?: string;
   phone?: string;
 }

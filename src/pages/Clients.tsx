@@ -1,25 +1,61 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { UserPlus } from 'lucide-react';
 import ClientsTable from '@/components/ClientsTable';
-import { deleteClient, getClients, searchClients } from '@/data/clients';
-import { Client } from '@/types/client';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { getClients, deleteClient } from '@/lib/api/clients';
+import { toast } from '@/components/ui/use-toast';
 
 const Clients: React.FC = () => {
-  const [clients, setClients] = useState<Client[]>([]);
+  const queryClient = useQueryClient();
   
-  useEffect(() => {
-    setClients(getClients());
-  }, []);
+  const { data: clients = [], isLoading } = useQuery({
+    queryKey: ['clients'],
+    queryFn: getClients
+  });
   
-  const handleDelete = (id: string) => {
-    const success = deleteClient(id);
-    if (success) {
-      setClients(getClients());
+  const deleteMutation = useMutation({
+    mutationFn: deleteClient,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['clients'] });
+      toast({
+        title: "Επιτυχής διαγραφή",
+        description: "Ο πελάτης διαγράφηκε επιτυχώς."
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Σφάλμα",
+        description: `Υπήρξε ένα πρόβλημα κατά τη διαγραφή: ${error.message}`,
+        variant: "destructive"
+      });
+    }
+  });
+  
+  const handleDelete = async (id: string) => {
+    if (window.confirm('Είστε βέβαιοι ότι θέλετε να διαγράψετε αυτόν τον πελάτη;')) {
+      deleteMutation.mutate(id);
     }
   };
+  
+  if (isLoading) {
+    return (
+      <div className="min-h-screen pt-20 px-4 md:px-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="animate-pulse">
+            <div className="h-8 w-48 bg-muted rounded mb-6"></div>
+            <div className="space-y-4">
+              <div className="h-12 bg-muted rounded"></div>
+              <div className="h-12 bg-muted rounded"></div>
+              <div className="h-12 bg-muted rounded"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
   
   return (
     <div className="min-h-screen pt-20 px-4 md:px-8">

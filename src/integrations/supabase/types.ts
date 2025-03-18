@@ -9,6 +9,113 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      clients: {
+        Row: {
+          address: string | null
+          city: string | null
+          company: string | null
+          country: string | null
+          created_at: string
+          email: string
+          first_name: string
+          id: string
+          last_name: string
+          notes: string | null
+          phone: string
+          position: string | null
+          updated_at: string
+          user_id: string
+          zip_code: string | null
+        }
+        Insert: {
+          address?: string | null
+          city?: string | null
+          company?: string | null
+          country?: string | null
+          created_at?: string
+          email: string
+          first_name: string
+          id?: string
+          last_name: string
+          notes?: string | null
+          phone: string
+          position?: string | null
+          updated_at?: string
+          user_id: string
+          zip_code?: string | null
+        }
+        Update: {
+          address?: string | null
+          city?: string | null
+          company?: string | null
+          country?: string | null
+          created_at?: string
+          email?: string
+          first_name?: string
+          id?: string
+          last_name?: string
+          notes?: string | null
+          phone?: string
+          position?: string | null
+          updated_at?: string
+          user_id?: string
+          zip_code?: string | null
+        }
+        Relationships: []
+      }
+      devices: {
+        Row: {
+          brand: string
+          client_id: string
+          created_at: string
+          id: string
+          model: string
+          problem: string
+          received_at: string | null
+          serial_number: string | null
+          status: string
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          brand: string
+          client_id: string
+          created_at?: string
+          id?: string
+          model: string
+          problem: string
+          received_at?: string | null
+          serial_number?: string | null
+          status: string
+          type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          brand?: string
+          client_id?: string
+          created_at?: string
+          id?: string
+          model?: string
+          problem?: string
+          received_at?: string | null
+          serial_number?: string | null
+          status?: string
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "devices_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -41,6 +148,63 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      technical_reports: {
+        Row: {
+          client_id: string
+          completed: boolean
+          cost: number | null
+          created_at: string
+          device_id: string
+          diagnosis: string
+          id: string
+          solution: string | null
+          time_spent: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          client_id: string
+          completed?: boolean
+          cost?: number | null
+          created_at?: string
+          device_id: string
+          diagnosis: string
+          id?: string
+          solution?: string | null
+          time_spent?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          client_id?: string
+          completed?: boolean
+          cost?: number | null
+          created_at?: string
+          device_id?: string
+          diagnosis?: string
+          id?: string
+          solution?: string | null
+          time_spent?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "technical_reports_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "technical_reports_device_id_fkey"
+            columns: ["device_id"]
+            isOneToOne: false
+            referencedRelation: "devices"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
