@@ -8,17 +8,19 @@ import AuthTabs from '@/components/auth/AuthTabs';
 
 const Auth: React.FC = () => {
   const [authMethod, setAuthMethod] = useState<'login' | 'register'>('login');
-  const { session } = useAuth();
+  const { session, isLoading } = useAuth();
   const navigate = useNavigate();
   
   useEffect(() => {
     console.log('Auth component - Current session:', session);
+    console.log('Auth component - Is loading:', isLoading);
     
-    if (session?.user) {
+    // Μόνο κάνουμε redirect όταν έχουμε session και δεν φορτώνουμε
+    if (session?.user && !isLoading) {
       console.log('User is authenticated, redirecting to home');
-      navigate('/');
+      navigate('/', { replace: true });
     }
-  }, [session, navigate]);
+  }, [session, isLoading, navigate]);
 
   return (
     <AuthCard>

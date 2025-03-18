@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Session, UserProfile } from "@/types/auth";
@@ -47,17 +46,20 @@ export const createSessionFromProfile = (profileData: any, accessToken: string):
 export const signInWithEmail = async (email: string, password: string) => {
   try {
     console.log('Attempting sign in with:', email);
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
-    if (error) throw error;
-    console.log('Sign in successful');
+    if (error) {
+      console.error('Sign in error:', error);
+      return { error };
+    }
+    
+    console.log('Sign in successful, auth data:', data);
     return { error: null };
   } catch (error: any) {
     console.error('Sign in error:', error);
-    toast.error('Η σύνδεση απέτυχε: ' + error.message);
     return { error };
   }
 };

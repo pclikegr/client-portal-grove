@@ -12,6 +12,7 @@ export const useAuthSession = () => {
     const checkSession = async () => {
       try {
         console.log('Checking session...');
+        setIsLoading(true);
         const { data: { session: supabaseSession } } = await supabase.auth.getSession();
         
         if (supabaseSession) {
@@ -56,6 +57,7 @@ export const useAuthSession = () => {
       console.log('Auth state changed:', event);
       
       if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+        setIsLoading(true);
         if (supabaseSession) {
           console.log('User signed in or token refreshed:', supabaseSession);
           try {
@@ -64,6 +66,7 @@ export const useAuthSession = () => {
             if (error) {
               console.error('Error fetching profile after state change:', error);
               setSession(null);
+              setIsLoading(false);
               return;
             }
 
@@ -78,11 +81,16 @@ export const useAuthSession = () => {
           } catch (error) {
             console.error('Error fetching user profile:', error);
             setSession(null);
+          } finally {
+            setIsLoading(false);
           }
+        } else {
+          setIsLoading(false);
         }
       } else if (event === 'SIGNED_OUT') {
         console.log('User signed out');
         setSession(null);
+        setIsLoading(false);
       }
     });
 

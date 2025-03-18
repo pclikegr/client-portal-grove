@@ -39,13 +39,16 @@ export const useLoginForm = (signIn: AuthContextType['signIn']) => {
       if (error) {
         console.error('Sign in error:', error);
         toast.error(`Σφάλμα σύνδεσης: ${error.message}`);
+        setIsSubmitting(false);
       } else {
+        console.log('Sign in successful, redirection should happen automatically');
         toast.success('Επιτυχής σύνδεση!');
+        // Δεν χρειάζεται να κάνουμε redirect εδώ, θα γίνει αυτόματα από το Auth component
+        // όταν αλλάξει το session
       }
     } catch (err) {
       console.error('Login error:', err);
       toast.error('Προέκυψε ένα σφάλμα κατά τη σύνδεση');
-    } finally {
       setIsSubmitting(false);
     }
   };
