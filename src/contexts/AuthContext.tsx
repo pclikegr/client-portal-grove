@@ -17,7 +17,7 @@ export const AuthContext = createContext<AuthContextType>({
   isLoading: true,
   signIn: async () => ({ error: null }),
   signUp: async () => ({ error: null, user: null }),
-  signOut: async () => {},
+  signOut: async () => ({ error: null }),
   updateProfile: async () => ({ error: null }),
   signInWithOAuth: async () => ({ error: null }),
 });
