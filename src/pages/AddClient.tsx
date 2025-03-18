@@ -16,11 +16,11 @@ const AddClient: React.FC = () => {
   const [activeTab, setActiveTab] = useState('client');
   const [newClientId, setNewClientId] = useState<string | null>(null);
   
-  const handleClientSubmit = (data: CreateClientData) => {
+  const handleClientSubmit = async (data: CreateClientData) => {
     setIsLoading(true);
     
     try {
-      const newClient = addClient(data);
+      const newClient = await addClient(data);
       setNewClientId(newClient.id);
       
       toast({
@@ -32,9 +32,15 @@ const AddClient: React.FC = () => {
     } catch (error) {
       console.error('Σφάλμα κατά την προσθήκη:', error);
       
+      let errorMessage = "Υπήρξε ένα πρόβλημα κατά την προσθήκη του πελάτη.";
+      if (error instanceof Error && error.message === 'No authenticated user') {
+        errorMessage = "Πρέπει να συνδεθείτε για να προσθέσετε πελάτη.";
+        navigate('/auth');
+      }
+      
       toast({
         title: "Σφάλμα",
-        description: "Υπήρξε ένα πρόβλημα κατά την προσθήκη του πελάτη.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {

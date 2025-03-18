@@ -1,4 +1,5 @@
 import { Client } from "@/types/client";
+import { supabase } from "@/integrations/supabase/client";
 
 export const clients: Client[] = [
   {
@@ -86,61 +87,80 @@ export const clients: Client[] = [
 
 let clientsData = [...clients];
 
-export const getClients = (): Client[] => {
-  return [...clientsData];
+export const getClients = async (): Promise<Client[]> => {
+  const { data, error } = await supabase
+    .from('clients')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+  return data || [];
 };
 
-export const getClientById = (id: string): Client | undefined => {
-  return clientsData.find(client => client.id === id);
+export const getClientById = async (id: string): Promise<Client | null> => {
+  const { data, error } = await supabase
+    .from('clients')
+    .select('*')
+    .eq('id', id)
+    .single();
+
+  if (error) throw error;
+  return data;
 };
 
-export const addClient = (client: Omit<Client, 'id' | 'created_at' | 'updated_at' | 'user_id'>): Client => {
-  const newClient: Client = {
-    ...client,
-    id: Date.now().toString(),
-    user_id: '1', // Default user ID for mock data
-    created_at: new Date(),
-    updated_at: new Date()
-  };
+export const addClient = async (clientData: Omit<Client, 'id' | 'created_at' | 'updated_at' | 'user_id'>): Promise<Client> => {
+  const { data: { user } } = await supabase.auth.getUser();
   
-  clientsData = [...clientsData, newClient];
-  return newClient;
+  if (!user) {
+    throw new Error('No authenticated user');
+  }
+
+  const { data, error } = await supabase
+    .from('clients')
+    .insert([{ ...clientData, user_id: user.id }])
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error adding client:', error);
+    throw error;
+  }
+
+  return data;
 };
 
-export const updateClient = (id: string, updates: Partial<Omit<Client, 'id' | 'created_at' | 'updated_at'>>): Client | undefined => {
-  const index = clientsData.findIndex(client => client.id === id);
-  
-  if (index === -1) return undefined;
-  
-  const updatedClient: Client = {
-    ...clientsData[index],
-    ...updates,
-    updated_at: new Date()
-  };
-  
-  clientsData[index] = updatedClient;
-  return updatedClient;
+export const updateClient = async (id: string, updates: Partial<Client>): Promise<Client> => {
+  const { data, error } = await supabase
+    .from('clients')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
 };
 
-export const deleteClient = (id: string): boolean => {
-  const initialLength = clientsData.length;
-  clientsData = clientsData.filter(client => client.id !== id);
-  return clientsData.length !== initialLength;
+export const deleteClient = async (id: string): Promise<boolean> => {
+  const { error } = await supabase
+    .from('clients')
+    .delete()
+    .eq('id', id);
+
+  if (error) throw error;
+  return true;
 };
 
-export const searchClients = (query: string): Client[] => {
+export const searchClients = async (query: string): Promise<Client[]> => {
   const searchTerms = query.toLowerCase().split(' ').filter(term => term);
   
   if (!searchTerms.length) return getClients();
   
-  return clientsData.filter(client => {
-    return searchTerms.some(term => 
-      client.first_name.toLowerCase().includes(term) ||
-      client.last_name.toLowerCase().includes(term) ||
-      client.email.toLowerCase().includes(term) ||
-      client.company?.toLowerCase().includes(term) ||
-      client.position?.toLowerCase().includes(term) ||
-      client.city?.toLowerCase().includes(term)
-    );
-  });
+  const { data, error } = await supabase
+    .from('clients')
+    .select('*')
+    .or(`first_name.ilike.%${query}%,last_name.ilike.%${query}%,email.ilike.%${query}%,company.ilike.%${query}%`);
+
+  if (error) throw error;
+  return data || [];
 };
