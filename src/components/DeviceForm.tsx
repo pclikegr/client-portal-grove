@@ -157,7 +157,7 @@ const DeviceForm: React.FC<DeviceFormProps> = ({
                         <SelectContent>
                           {availableClients.map(client => (
                             <SelectItem key={client.id} value={client.id}>
-                              {client.firstName} {client.lastName}
+                              {client.first_name} {client.last_name}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -349,7 +349,7 @@ const DeviceForm: React.FC<DeviceFormProps> = ({
                           <FormLabel>Διάγνωση</FormLabel>
                           <FormControl>
                             <Textarea 
-                              placeholder="Καταγράψτε τη διάγνωση του προβλήμ��τος..." 
+                              placeholder="Καταγράψτε τη διάγνωση του προβλήματος..." 
                               className="min-h-[100px]" 
                               {...field} 
                             />
