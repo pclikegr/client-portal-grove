@@ -1,51 +1,55 @@
+
 import { Client, CreateClientData, UpdateClientData } from "@/types/client";
 
 // Mock client data
 const initialClients: Client[] = [
   {
     id: "1",
+    user_id: "user-1", // Added the required user_id property
     first_name: "Γιώργος",
     last_name: "Παπαδόπουλος",
     email: "g.papadopoulos@example.com",
     phone: "6977777777",
     address: "Λεωφ. Αλεξάνδρας 74",
     city: "Αθήνα",
-    state: "Αττική",
-    zip: "11634",
+    country: "Ελλάδα", // Changed 'state' to 'country' to match the Client type
+    zip_code: "11634", // Changed 'zip' to 'zip_code' to match the Client type
     company: "Τεχνική Υποστήριξη ΑΕ",
-    vat: "123456789",
+    position: "Τεχνικός", // Added position field
     notes: "Τακτικός πελάτης με πολλές συσκευές",
     created_at: new Date("2023-05-10"),
     updated_at: new Date("2023-05-12")
   },
   {
     id: "2",
+    user_id: "user-1", // Added the required user_id property
     first_name: "Μαρία",
     last_name: "Αντωνίου",
     email: "m.antoniou@example.com",
     phone: "6988888888",
     address: "Τσιμισκή 41",
     city: "Θεσσαλονίκη",
-    state: "Θεσσαλονίκη",
-    zip: "54623",
+    country: "Ελλάδα", // Changed 'state' to 'country' to match the Client type
+    zip_code: "54623", // Changed 'zip' to 'zip_code' to match the Client type
     company: "",
-    vat: "",
+    position: "", // Added position field
     notes: "Προτιμά επικοινωνία μέσω email",
     created_at: new Date("2023-05-15"),
     updated_at: new Date("2023-05-15")
   },
   {
     id: "3",
+    user_id: "user-1", // Added the required user_id property
     first_name: "Δημήτρης",
     last_name: "Κωνσταντίνου",
     email: "d.konstantinou@example.com",
     phone: "6999999999",
     address: "Κορίνθου 45",
     city: "Πάτρα",
-    state: "Αχαΐα",
-    zip: "26223",
+    country: "Ελλάδα", // Changed 'state' to 'country' to match the Client type
+    zip_code: "26223", // Changed 'zip' to 'zip_code' to match the Client type
     company: "Δημήτρης Κωνσταντίνου & ΣΙΑ ΟΕ",
-    vat: "987654321",
+    position: "Ιδιοκτήτης", // Added position field
     notes: "",
     created_at: new Date("2023-05-18"),
     updated_at: new Date("2023-05-18")
@@ -72,6 +76,7 @@ export const addClient = async (clientData: CreateClientData): Promise<Client> =
   const newClient: Client = {
     ...clientData,
     id: Date.now().toString(),
+    user_id: "user-1", // Added the required user_id property
     created_at: new Date(),
     updated_at: new Date()
   };
