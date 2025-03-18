@@ -5,7 +5,7 @@ import { CalendarIcon, ChevronDown, ChevronUp } from 'lucide-react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Device, DeviceType, CreateDeviceData, UpdateDeviceData } from '@/types/client';
+import { Device, DeviceType, CreateDeviceData, UpdateDeviceData, Client } from '@/types/client';
 import { getClients } from '@/data/clients';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

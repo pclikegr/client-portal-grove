@@ -21,37 +21,32 @@ const ViewDevice: React.FC = () => {
   const [isNotFound, setIsNotFound] = useState(false);
   
   useEffect(() => {
-    if (!id) {
-      setIsNotFound(true);
-      return;
-    }
-    
-    const deviceData = getDeviceById(id);
-    
-    if (!deviceData) {
-      setIsNotFound(true);
-      toast({
-        title: "Σφάλμα",
-        description: "Η συσκευή δεν βρέθηκε.",
-        variant: "destructive",
-      });
-    } else {
-      setDevice(deviceData);
-      
-      // Φορτώνουμε τον πελάτη
-      const clientData = getClientById(deviceData.clientId);
-      if (clientData) {
-        setClient(clientData);
+    const loadData = async () => {
+      if (!id) {
+        setIsNotFound(true);
+        return;
       }
       
-      // Φορτώνουμε το δελτίο τεχνικού ελέγχου αν υπάρχει
-      if (deviceData.technicalReportId) {
-        const reportData = getTechnicalReportByDeviceId(deviceData.id);
-        if (reportData) {
-          setReport(reportData);
+      const deviceData = await getDeviceById(id);
+      
+      if (!deviceData) {
+        setIsNotFound(true);
+        toast({
+          title: "Σφάλμα",
+          description: "Η συσκευή δεν βρέθηκε.",
+          variant: "destructive",
+        });
+      } else {
+        setDevice(deviceData);
+        
+        const clientData = await getClientById(deviceData.clientId);
+        if (clientData) {
+          setClient(clientData);
         }
       }
-    }
+    };
+
+    loadData();
   }, [id]);
   
   const handleDelete = () => {

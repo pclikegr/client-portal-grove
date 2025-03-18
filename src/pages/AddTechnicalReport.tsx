@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { addTechnicalReport } from '@/data/technicalReports';
@@ -16,34 +15,37 @@ const AddTechnicalReport: React.FC = () => {
   const [client, setClient] = useState<Client | null>(null);
   
   useEffect(() => {
-    if (!deviceId) {
-      toast({
-        title: "Σφάλμα",
-        description: "Δεν βρέθηκε η συσκευή.",
-        variant: "destructive",
-      });
-      navigate('/devices');
-      return;
-    }
-    
-    const deviceData = getDeviceById(deviceId);
-    if (!deviceData) {
-      toast({
-        title: "Σφάλμα",
-        description: "Η συσκευή δεν βρέθηκε.",
-        variant: "destructive",
-      });
-      navigate('/devices');
-      return;
-    }
-    
-    setDevice(deviceData);
-    
-    // Φορτώνουμε τον πελάτη
-    const clientData = getClientById(deviceData.clientId);
-    if (clientData) {
-      setClient(clientData);
-    }
+    const loadData = async () => {
+      if (!deviceId) {
+        toast({
+          title: "Σφάλμα",
+          description: "Δεν βρέθηκε η συσκευή.",
+          variant: "destructive",
+        });
+        navigate('/devices');
+        return;
+      }
+      
+      const deviceData = await getDeviceById(deviceId);
+      if (!deviceData) {
+        toast({
+          title: "Σφάλμα",
+          description: "Η συσκευή δεν βρέθηκε.",
+          variant: "destructive",
+        });
+        navigate('/devices');
+        return;
+      }
+      
+      setDevice(deviceData);
+      
+      const clientData = await getClientById(deviceData.clientId);
+      if (clientData) {
+        setClient(clientData);
+      }
+    };
+
+    loadData();
   }, [deviceId, navigate]);
   
   const handleSubmit = (data: CreateTechnicalReportData) => {

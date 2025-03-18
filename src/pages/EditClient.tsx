@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { getClientById, updateClient } from '@/data/clients';
@@ -14,23 +13,32 @@ const EditClient: React.FC = () => {
   const [isNotFound, setIsNotFound] = useState(false);
   
   useEffect(() => {
-    if (!id) {
-      setIsNotFound(true);
-      return;
-    }
-    
-    const clientData = getClientById(id);
-    
-    if (!clientData) {
-      setIsNotFound(true);
-      toast({
-        title: "Σφάλμα",
-        description: "Ο πελάτης δεν βρέθηκε.",
-        variant: "destructive",
-      });
-    } else {
-      setClient(clientData);
-    }
+    const loadClient = async () => {
+      if (!id) {
+        setIsNotFound(true);
+        return;
+      }
+      
+      try {
+        const clientData = await getClientById(id);
+        
+        if (!clientData) {
+          setIsNotFound(true);
+          toast({
+            title: "Σφάλμα",
+            description: "Ο πελάτης δεν βρέθηκε.",
+            variant: "destructive",
+          });
+        } else {
+          setClient(clientData);
+        }
+      } catch (error) {
+        console.error('Error loading client:', error);
+        setIsNotFound(true);
+      }
+    };
+
+    loadClient();
   }, [id]);
   
   const handleSubmit = (data: UpdateClientData) => {

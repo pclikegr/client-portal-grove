@@ -20,28 +20,31 @@ const ViewTechnicalReport: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   
   useEffect(() => {
-    if (id) {
-      const technicalReport = getTechnicalReportById(id);
-      if (technicalReport) {
-        setReport(technicalReport);
-        const deviceData = getDeviceById(technicalReport.deviceId);
-        if (deviceData) {
-          setDevice(deviceData);
-          const clientData = getClientById(technicalReport.clientId);
-          if (clientData) {
-            setClient(clientData);
+    const loadData = async () => {
+      if (id) {
+        const technicalReport = await getTechnicalReportById(id);
+        if (technicalReport) {
+          setReport(technicalReport);
+          const deviceData = await getDeviceById(technicalReport.deviceId);
+          if (deviceData) {
+            setDevice(deviceData);
+            const clientData = await getClientById(technicalReport.clientId);
+            if (clientData) {
+              setClient(clientData);
+            }
           }
+        } else {
+          toast({
+            title: 'Σφάλμα',
+            description: 'Η τεχνική έκθεση δεν βρέθηκε.',
+            variant: 'destructive',
+          });
+          navigate('/technical-reports');
         }
-      } else {
-        toast({
-          title: 'Σφάλμα',
-          description: 'Η τεχνική έκθεση δεν βρέθηκε.',
-          variant: 'destructive',
-        });
-        navigate('/technical-reports');
       }
-    }
-    setIsLoading(false);
+    };
+
+    loadData();
   }, [id, navigate]);
   
   const handleDelete = () => {
