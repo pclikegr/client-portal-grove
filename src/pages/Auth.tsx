@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -19,7 +20,7 @@ const Auth: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [authMethod, setAuthMethod] = useState<'login' | 'register'>('login');
   
-  const { signIn, signUp, session } = useAuth();
+  const { signIn, signUp, session, signInWithOAuth } = useAuth();
   const navigate = useNavigate();
   
   useEffect(() => {
