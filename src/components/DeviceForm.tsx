@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
@@ -34,7 +33,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-// Σχήμα επικύρωσης για τη συσκευή
 const deviceSchema = z.object({
   clientId: z.string().min(1, { message: 'Η επιλογή πελάτη είναι υποχρεωτική' }),
   type: z.nativeEnum(DeviceType),
@@ -46,7 +44,6 @@ const deviceSchema = z.object({
   receivedAt: z.date().optional(),
 });
 
-// Σχήμα επικύρωσης για το δελτίο τεχνικού ελέγχου
 const technicalReportSchema = z.object({
   diagnosis: z.string().min(5, { message: 'Η διάγνωση πρέπει να έχει τουλάχιστον 5 χαρακτήρες' }).optional(),
   solution: z.string().optional(),
@@ -55,7 +52,6 @@ const technicalReportSchema = z.object({
   completed: z.boolean().default(false),
 });
 
-// Συνδυασμένο σχήμα
 const combinedFormSchema = z.object({
   device: deviceSchema,
   report: technicalReportSchema,
@@ -79,18 +75,21 @@ const DeviceForm: React.FC<DeviceFormProps> = ({
   includeReport = false
 }) => {
   const navigate = useNavigate();
-  const [availableClients, setAvailableClients] = useState([]);
+  const [availableClients, setAvailableClients] = useState<Client[]>([]);
   const [activeTab, setActiveTab] = useState<string>("device");
   const [isReportExpanded, setIsReportExpanded] = useState(false);
 
-  // Φόρτωση πελατών όταν απαιτείται επιλογή πελάτη
   useEffect(() => {
-    if (!clientId) {
-      setAvailableClients(getClients());
-    }
+    const loadClients = async () => {
+      if (!clientId) {
+        const clients = await getClients();
+        setAvailableClients(clients);
+      }
+    };
+    
+    loadClients();
   }, [clientId]);
   
-  // Αρχικοποίηση φόρμας
   const form = useForm<z.infer<typeof combinedFormSchema>>({
     resolver: zodResolver(combinedFormSchema),
     defaultValues: {
@@ -114,7 +113,6 @@ const DeviceForm: React.FC<DeviceFormProps> = ({
     },
   });
 
-  // Χειρισμός υποβολής
   const handleSubmit = (values: z.infer<typeof combinedFormSchema>) => {
     if (isEditing && device) {
       onSubmit({
@@ -143,7 +141,6 @@ const DeviceForm: React.FC<DeviceFormProps> = ({
             <div className="space-y-4">
               <h2 className="text-xl font-medium">Στοιχεία Συσκευής</h2>
               
-              {/* Επιλογή πελάτη - Εμφανίζεται μόνο όταν δεν υπάρχει προκαθορισμένος πελάτης */}
               {!clientId && (
                 <FormField
                   control={form.control}
@@ -352,7 +349,7 @@ const DeviceForm: React.FC<DeviceFormProps> = ({
                           <FormLabel>Διάγνωση</FormLabel>
                           <FormControl>
                             <Textarea 
-                              placeholder="Καταγράψτε τη διάγνωση του προβλήματος..." 
+                              placeholder="Καταγράψτε τη διάγνωση του προβλήμ��τος..." 
                               className="min-h-[100px]" 
                               {...field} 
                             />

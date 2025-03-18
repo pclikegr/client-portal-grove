@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -8,8 +7,17 @@ import { Users, UserPlus, Search, BarChart } from 'lucide-react';
 
 const Index: React.FC = () => {
   const navigate = useNavigate();
-  const clients = getClients();
-  
+  const [totalClients, setTotalClients] = React.useState(0);
+
+  useEffect(() => {
+    const loadData = async () => {
+      const clients = await getClients();
+      setTotalClients(clients.length);
+    };
+
+    loadData();
+  }, []);
+
   return (
     <div className="min-h-screen pt-20 px-4 md:px-8">
       <div className="max-w-7xl mx-auto animate-fade-in">
@@ -84,7 +92,7 @@ const Index: React.FC = () => {
         
         <div className="mb-12">
           <div className="bg-primary/5 rounded-lg p-8 text-center animate-fade-in">
-            <h2 className="text-2xl font-bold mb-4">Διαχειριστείτε {clients.length} πελάτες</h2>
+            <h2 className="text-2xl font-bold mb-4">Διαχειριστείτε {totalClients} πελάτες</h2>
             <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
               Το ClientBook σας βοηθά να διατηρείτε οργανωμένα τα στοιχεία των πελατών σας και να έχετε πρόσβαση σε αυτά από οπουδήποτε.
             </p>

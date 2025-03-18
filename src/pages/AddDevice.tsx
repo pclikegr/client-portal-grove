@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { addDevice } from '@/data/devices';
@@ -15,19 +14,33 @@ const AddDevice: React.FC = () => {
   const [client, setClient] = useState<Client | null>(null);
   
   useEffect(() => {
-    if (clientId) {
-      const clientData = getClientById(clientId);
-      if (clientData) {
-        setClient(clientData);
-      } else {
-        toast({
-          title: "Σφάλμα",
-          description: "Ο πελάτης δεν βρέθηκε.",
-          variant: "destructive",
-        });
-        navigate('/clients');
+    const loadClient = async () => {
+      if (clientId) {
+        try {
+          const clientData = await getClientById(clientId);
+          if (clientData) {
+            setClient(clientData);
+          } else {
+            toast({
+              title: "Σφάλμα",
+              description: "Ο πελάτης δεν βρέθηκε.",
+              variant: "destructive",
+            });
+            navigate('/clients');
+          }
+        } catch (error) {
+          console.error('Error loading client:', error);
+          toast({
+            title: "Σφάλμα",
+            description: "Υπήρξε πρόβλημα κατά τη φόρτωση του πελάτη.",
+            variant: "destructive",
+          });
+          navigate('/clients');
+        }
       }
-    }
+    };
+
+    loadClient();
   }, [clientId, navigate]);
   
   const handleSubmit = (data: { 
