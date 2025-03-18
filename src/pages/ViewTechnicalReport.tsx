@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { getTechnicalReportById, deleteTechnicalReport } from '@/data/technicalReports';
@@ -22,25 +23,38 @@ const ViewTechnicalReport: React.FC = () => {
   useEffect(() => {
     const loadData = async () => {
       if (id) {
-        const technicalReport = await getTechnicalReportById(id);
-        if (technicalReport) {
-          setReport(technicalReport);
-          const deviceData = await getDeviceById(technicalReport.deviceId);
-          if (deviceData) {
-            setDevice(deviceData);
-            const clientData = await getClientById(technicalReport.clientId);
-            if (clientData) {
-              setClient(clientData);
+        try {
+          const technicalReport = await getTechnicalReportById(id);
+          if (technicalReport) {
+            setReport(technicalReport);
+            const deviceData = await getDeviceById(technicalReport.deviceId);
+            if (deviceData) {
+              setDevice(deviceData);
+              const clientData = await getClientById(technicalReport.clientId);
+              if (clientData) {
+                setClient(clientData);
+              }
             }
+          } else {
+            toast({
+              title: 'Σφάλμα',
+              description: 'Η τεχνική έκθεση δεν βρέθηκε.',
+              variant: 'destructive',
+            });
+            navigate('/technical-reports');
           }
-        } else {
+        } catch (error) {
+          console.error("Error loading technical report:", error);
           toast({
             title: 'Σφάλμα',
-            description: 'Η τεχνική έκθεση δεν βρέθηκε.',
+            description: 'Υπήρξε ένα πρόβλημα κατά τη φόρτωση της τεχνικής έκθεσης.',
             variant: 'destructive',
           });
-          navigate('/technical-reports');
+        } finally {
+          setIsLoading(false); // Make sure to set isLoading to false regardless of success or failure
         }
+      } else {
+        setIsLoading(false); // Set isLoading to false if there's no ID
       }
     };
 
@@ -69,7 +83,10 @@ const ViewTechnicalReport: React.FC = () => {
   };
   
   if (isLoading) {
-    return <div className="min-h-screen pt-20 flex justify-center">Φόρτωση...</div>;
+    return <div className="min-h-screen pt-20 flex justify-center items-center">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <span className="ml-2">Φόρτωση...</span>
+    </div>;
   }
   
   if (!report) {

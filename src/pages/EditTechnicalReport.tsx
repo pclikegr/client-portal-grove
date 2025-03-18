@@ -14,20 +14,37 @@ const EditTechnicalReport: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   
   useEffect(() => {
-    if (id) {
-      const technicalReport = getTechnicalReportById(id);
-      if (technicalReport) {
-        setReport(technicalReport);
+    const loadReport = async () => {
+      if (id) {
+        try {
+          const technicalReport = getTechnicalReportById(id);
+          if (technicalReport) {
+            setReport(technicalReport);
+          } else {
+            toast({
+              title: 'Σφάλμα',
+              description: 'Η τεχνική έκθεση δεν βρέθηκε.',
+              variant: 'destructive',
+            });
+            navigate('/technical-reports');
+          }
+        } catch (error) {
+          console.error("Error loading technical report:", error);
+          toast({
+            title: 'Σφάλμα',
+            description: 'Υπήρξε ένα πρόβλημα κατά τη φόρτωση της τεχνικής έκθεσης.',
+            variant: 'destructive',
+          });
+          navigate('/technical-reports');
+        } finally {
+          setIsLoading(false);
+        }
       } else {
-        toast({
-          title: 'Σφάλμα',
-          description: 'Η τεχνική έκθεση δεν βρέθηκε.',
-          variant: 'destructive',
-        });
-        navigate('/technical-reports');
+        setIsLoading(false);
       }
-    }
-    setIsLoading(false);
+    };
+    
+    loadReport();
   }, [id, navigate]);
   
   const handleSubmit = (data: UpdateTechnicalReportData) => {
@@ -50,6 +67,7 @@ const EditTechnicalReport: React.FC = () => {
         });
       }
     } catch (error) {
+      console.error("Error updating technical report:", error);
       toast({
         title: 'Σφάλμα',
         description: 'Υπήρξε ένα πρόβλημα κατά την ενημέρωση της τεχνικής έκθεσης.',
@@ -61,7 +79,10 @@ const EditTechnicalReport: React.FC = () => {
   };
   
   if (isLoading) {
-    return <div className="min-h-screen pt-20 flex justify-center">Φόρτωση...</div>;
+    return <div className="min-h-screen pt-20 flex justify-center items-center">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <span className="ml-2">Φόρτωση...</span>
+    </div>;
   }
   
   if (!report) {
