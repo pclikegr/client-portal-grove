@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Loader2 } from 'lucide-react';
@@ -15,23 +15,26 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 }) => {
   const { session, isLoading } = useAuth();
   const navigate = useNavigate();
-
+  const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
+  
   useEffect(() => {
-    const checkAuth = () => {
-      if (!isLoading) {
-        if (!session) {
-          console.log('No session, redirecting to auth');
-          navigate('/auth', { replace: true });
-        } else if (session?.user && !allowedRoles.includes(session.user.role as 'user' | 'admin')) {
-          console.log('User not authorized, redirecting to home');
-          navigate('/', { replace: true });
-        } else {
-          console.log('User is authenticated and authorized');
-        }
+    // Add more detailed logging
+    console.log('ProtectedRoute - Auth state:', { session, isLoading });
+    
+    if (!isLoading) {
+      if (!session || !session.user) {
+        console.log('No session, redirecting to auth');
+        navigate('/auth', { replace: true });
+        setIsAuthorized(false);
+      } else if (!allowedRoles.includes(session.user.role as 'user' | 'admin')) {
+        console.log('User not authorized, redirecting to home');
+        navigate('/', { replace: true });
+        setIsAuthorized(false);
+      } else {
+        console.log('User is authenticated and authorized:', session.user);
+        setIsAuthorized(true);
       }
-    };
-
-    checkAuth();
+    }
   }, [session, isLoading, navigate, allowedRoles]);
 
   if (isLoading) {
@@ -42,7 +45,10 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     );
   }
 
-  if (!session) return null;
+  // Don't render children until we're sure authorization is complete
+  if (isAuthorized === null || isAuthorized === false) {
+    return null;
+  }
 
   return <>{children}</>;
 };

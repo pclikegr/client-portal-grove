@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -24,7 +23,10 @@ const Auth: React.FC = () => {
   const navigate = useNavigate();
   
   useEffect(() => {
+    console.log('Auth component - Current session:', session);
+    
     if (session?.user) {
+      console.log('User is authenticated, redirecting to home');
       navigate('/');
     }
   }, [session, navigate]);
@@ -38,13 +40,14 @@ const Auth: React.FC = () => {
     
     setIsSubmitting(true);
     try {
+      console.log('Attempting sign in with:', email);
       const { error } = await signIn(email, password);
       
       if (error) {
         toast.error(`Σφάλμα σύνδεσης: ${error.message}`);
+        console.error('Sign in error:', error);
       } else {
         toast.success('Επιτυχής σύνδεση!');
-        navigate('/');
       }
     } catch (err) {
       console.error('Login error:', err);
@@ -80,6 +83,7 @@ const Auth: React.FC = () => {
   const handleOAuthSignIn = async (provider: 'google' | 'facebook' | 'github') => {
     setIsSubmitting(true);
     try {
+      console.log(`Attempting sign in with ${provider}`);
       await signInWithOAuth(provider);
     } catch (err) {
       console.error(`${provider} login error:`, err);

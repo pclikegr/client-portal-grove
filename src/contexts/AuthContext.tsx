@@ -25,9 +25,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const checkSession = async () => {
       try {
+        console.log('Checking session...');
         const { data: { session: supabaseSession } } = await supabase.auth.getSession();
         
         if (supabaseSession) {
+          console.log('Supabase session found:', supabaseSession);
           try {
             const { data: profileData, error } = await supabase
               .from('profiles')
@@ -42,9 +44,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               return;
             }
 
+            console.log('Profile data retrieved:', profileData);
             const userRole = profileData.role === 'admin' ? 'admin' : 'user';
 
-            setSession({
+            const sessionData = {
               accessToken: supabaseSession.access_token,
               user: {
                 id: profileData.id,
@@ -54,12 +57,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 avatarUrl: profileData.avatar_url,
                 role: userRole,
               },
-            });
+            };
+            
+            console.log('Setting session with data:', sessionData);
+            setSession(sessionData);
           } catch (error) {
             console.error('Error in session check:', error);
             setSession(null);
           }
         } else {
+          console.log('No Supabase session found');
           setSession(null);
         }
       } catch (error) {
@@ -77,6 +84,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
         if (supabaseSession) {
+          console.log('User signed in or token refreshed:', supabaseSession);
           try {
             const { data: profileData, error } = await supabase
               .from('profiles')
@@ -90,9 +98,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               return;
             }
 
+            console.log('Profile data after auth change:', profileData);
             const userRole = profileData.role === 'admin' ? 'admin' : 'user';
 
-            setSession({
+            const sessionData = {
               accessToken: supabaseSession.access_token,
               user: {
                 id: profileData.id,
@@ -102,17 +111,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 avatarUrl: profileData.avatar_url,
                 role: userRole,
               },
-            });
+            };
             
-            console.log('Session updated after auth state change');
+            console.log('Setting session after auth change:', sessionData);
+            setSession(sessionData);
           } catch (error) {
             console.error('Error fetching user profile:', error);
             setSession(null);
           }
         }
       } else if (event === 'SIGNED_OUT') {
-        setSession(null);
         console.log('User signed out');
+        setSession(null);
       }
     });
 
@@ -183,6 +193,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signInWithOAuth = async (provider: 'google' | 'facebook' | 'github') => {
     try {
+      console.log(`Attempting OAuth sign in with: ${provider}`);
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
