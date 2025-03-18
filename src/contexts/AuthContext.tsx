@@ -45,9 +45,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
 
             console.log('Profile data retrieved:', profileData);
-            const userRole = profileData.role === 'admin' ? 'admin' : 'user';
+            // Ensure role is either "user" or "admin"
+            const userRole = profileData.role === 'admin' ? 'admin' as const : 'user' as const;
 
-            const sessionData = {
+            const sessionData: Session = {
               accessToken: supabaseSession.access_token,
               user: {
                 id: profileData.id,
@@ -99,9 +100,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
 
             console.log('Profile data after auth change:', profileData);
-            const userRole = profileData.role === 'admin' ? 'admin' : 'user';
+            // Ensure role is either "user" or "admin"
+            const userRole = profileData.role === 'admin' ? 'admin' as const : 'user' as const;
 
-            const sessionData = {
+            const sessionData: Session = {
               accessToken: supabaseSession.access_token,
               user: {
                 id: profileData.id,
