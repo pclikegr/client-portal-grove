@@ -31,21 +31,36 @@ export const getClientById = async (id: string): Promise<Client | null> => {
 };
 
 export const addClient = async (clientData: Omit<Client, 'id' | 'created_at' | 'updated_at' | 'user_id'>): Promise<Client> => {
-  const { data: { user } } = await supabase.auth.getUser();
+  // Get current user
+  const { data: userData, error: userError } = await supabase.auth.getUser();
   
-  if (!user) {
+  if (userError) {
+    console.error('Error getting current user:', userError);
+    throw userError;
+  }
+  
+  if (!userData || !userData.user) {
+    console.error('No authenticated user found');
     throw new Error('No authenticated user');
   }
-
+  
+  const userId = userData.user.id;
+  console.log('Adding client for user:', userId);
+  
+  // Insert client with user_id
   const { data, error } = await supabase
     .from('clients')
-    .insert([{ ...clientData, user_id: user.id }])
+    .insert([{ ...clientData, user_id: userId }])
     .select()
     .single();
 
   if (error) {
     console.error('Error adding client:', error);
     throw error;
+  }
+
+  if (!data) {
+    throw new Error('Failed to create client - no data returned');
   }
 
   return convertDatesToClient(data);

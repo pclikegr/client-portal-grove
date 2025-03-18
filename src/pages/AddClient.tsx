@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { addClient } from '@/data/clients';
 import { addDevice } from '@/data/devices';
@@ -9,18 +10,49 @@ import { toast } from '@/components/ui/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Loader2 } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 const AddClient: React.FC = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('client');
   const [newClientId, setNewClientId] = useState<string | null>(null);
+  const { session, isLoading: authLoading } = useAuth();
+  
+  useEffect(() => {
+    console.log('AddClient: Auth state updated:', { 
+      authenticated: !!session?.user, 
+      authLoading, 
+      userId: session?.user?.id 
+    });
+  }, [session, authLoading]);
   
   const handleClientSubmit = async (data: CreateClientData) => {
+    if (authLoading) {
+      toast({
+        title: "Περιμένετε",
+        description: "Γίνεται επαλήθευση του λογαριασμού σας...",
+      });
+      return;
+    }
+    
+    if (!session?.user) {
+      toast({
+        title: "Σφάλμα",
+        description: "Πρέπει να συνδεθείτε για να προσθέσετε πελάτη.",
+        variant: "destructive",
+      });
+      navigate('/auth');
+      return;
+    }
+    
     setIsLoading(true);
     
     try {
+      console.log('AddClient: Submitting client data:', data);
       const newClient = await addClient(data);
+      console.log('AddClient: Client created successfully:', newClient);
       setNewClientId(newClient.id);
       
       toast({
@@ -30,12 +62,16 @@ const AddClient: React.FC = () => {
       
       setActiveTab('device');
     } catch (error) {
-      console.error('Σφάλμα κατά την προσθήκη:', error);
+      console.error('AddClient: Error adding client:', error);
       
       let errorMessage = "Υπήρξε ένα πρόβλημα κατά την προσθήκη του πελάτη.";
-      if (error instanceof Error && error.message === 'No authenticated user') {
-        errorMessage = "Πρέπει να συνδεθείτε για να προσθέσετε πελάτη.";
-        navigate('/auth');
+      if (error instanceof Error) {
+        if (error.message === 'No authenticated user') {
+          errorMessage = "Πρέπει να συνδεθείτε για να προσθέσετε πελάτη.";
+          navigate('/auth');
+        } else {
+          errorMessage = `Σφάλμα: ${error.message}`;
+        }
       }
       
       toast({
@@ -48,11 +84,13 @@ const AddClient: React.FC = () => {
     }
   };
   
-  const handleDeviceSubmit = (data: any) => {
+  const handleDeviceSubmit = async (data: any) => {
     setIsLoading(true);
     
     try {
-      const newDevice = addDevice(data);
+      console.log('AddClient: Submitting device data:', data);
+      const newDevice = await addDevice(data);
+      console.log('AddClient: Device created successfully:', newDevice);
       
       toast({
         title: "Επιτυχής προσθήκη",
@@ -61,7 +99,7 @@ const AddClient: React.FC = () => {
       
       navigate(`/clients/${newClientId}`);
     } catch (error) {
-      console.error('Σφάλμα κατά την προσθήκη συσκευής:', error);
+      console.error('AddClient: Error adding device:', error);
       
       toast({
         title: "Σφάλμα",
@@ -78,6 +116,18 @@ const AddClient: React.FC = () => {
       navigate(`/clients/${newClientId}`);
     }
   };
+  
+  // If auth is still loading, show a loading indicator
+  if (authLoading) {
+    return (
+      <div className="min-h-screen pt-20 px-4 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-4" />
+          <p>Φόρτωση...</p>
+        </div>
+      </div>
+    );
+  }
   
   return (
     <div className="min-h-screen pt-20 px-4 md:px-8">

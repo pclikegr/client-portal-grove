@@ -1,133 +1,121 @@
 
-import { useEffect, useState } from 'react';
-import { supabase } from "@/integrations/supabase/client";
+import { useState, useEffect, useCallback } from 'react';
 import { Session } from '@/types/auth';
-import { fetchUserProfile, createSessionFromProfile } from '@/utils/authUtils';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/components/ui/use-toast';
 
 export const useAuthSession = () => {
   const [session, setSession] = useState<Session | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState(true);
+  const [initialCheckDone, setInitialCheckDone] = useState(false);
 
-  useEffect(() => {
-    let isMounted = true;
-    console.log('useAuthSession hook initialized');
+  console.log('useAuthSession hook initialized');
 
-    const checkSession = async () => {
-      try {
-        console.log('Checking session...');
-        if (!isMounted) return;
-        
-        const { data: { session: supabaseSession } } = await supabase.auth.getSession();
-        
-        if (supabaseSession) {
-          console.log('Supabase session found:', supabaseSession.user.id);
-          try {
-            const { error, profileData } = await fetchUserProfile(supabaseSession.user.id);
+  const fetchUserProfile = useCallback(async (userId: string) => {
+    console.log('Fetching profile for user ID:', userId);
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
 
-            if (error) {
-              console.error('Error fetching profile:', error);
-              if (isMounted) {
-                setSession(null);
-                setIsLoading(false);
-              }
-              return;
-            }
-
-            console.log('Profile data retrieved:', profileData);
-            const sessionData = createSessionFromProfile(
-              profileData, 
-              supabaseSession.access_token
-            );
-            
-            console.log('Setting session with data:', sessionData);
-            if (isMounted) {
-              setSession(sessionData);
-              setIsLoading(false);
-            }
-          } catch (error) {
-            console.error('Error in session check:', error);
-            if (isMounted) {
-              setSession(null);
-              setIsLoading(false);
-            }
-          }
-        } else {
-          console.log('No Supabase session found');
-          if (isMounted) {
-            setSession(null);
-            setIsLoading(false);
-          }
-        }
-      } catch (error) {
-        console.error('Error checking session:', error);
-        if (isMounted) {
-          setSession(null);
-          setIsLoading(false);
-        }
+      if (error) {
+        console.error('Error fetching user profile:', error);
+        return null;
       }
-    };
 
-    checkSession();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, supabaseSession) => {
-      console.log('Auth state changed:', event, supabaseSession?.user?.id);
-      
-      if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && supabaseSession) {
-        if (!isMounted) return;
-        setIsLoading(true);
-        
-        console.log('User signed in or token refreshed:', supabaseSession.user.id);
-        try {
-          const { error, profileData } = await fetchUserProfile(supabaseSession.user.id);
-
-          if (error) {
-            console.error('Error fetching profile after state change:', error);
-            if (isMounted) {
-              setSession(null);
-              setIsLoading(false);
-            }
-            return;
-          }
-
-          console.log('Profile data after auth change:', profileData);
-          const sessionData = createSessionFromProfile(
-            profileData, 
-            supabaseSession.access_token
-          );
-          
-          console.log('Setting session after auth change:', sessionData);
-          if (isMounted) {
-            setSession(sessionData);
-            setIsLoading(false);
-          }
-        } catch (error) {
-          console.error('Error fetching user profile:', error);
-          if (isMounted) {
-            setSession(null);
-            setIsLoading(false);
-          }
-        }
-      } else if (event === 'SIGNED_OUT') {
-        console.log('User signed out');
-        if (isMounted) {
-          setSession(null);
-          setIsLoading(false);
-        }
-      } else {
-        // For all other events, make sure loading is false
-        if (isMounted && isLoading) {
-          console.log('Other auth event, ensuring loading is false');
-          setIsLoading(false);
-        }
+      if (!data) {
+        console.error('No profile found for user ID:', userId);
+        return null;
       }
-    });
 
-    return () => {
-      console.log('useAuthSession hook cleanup');
-      isMounted = false;
-      subscription.unsubscribe();
-    };
+      return {
+        id: data.id,
+        firstName: data.first_name || '',
+        lastName: data.last_name || '',
+        email: data.email || '',
+        avatarUrl: data.avatar_url || undefined,
+        role: (data.role as 'user' | 'admin') || 'user',
+      };
+    } catch (error) {
+      console.error('Unexpected error fetching profile:', error);
+      return null;
+    }
   }, []);
 
-  return { session, isLoading, setSession };
+  const updateSession = useCallback(async (supabaseSession: any) => {
+    console.log('Updating session with supabaseSession:', !!supabaseSession);
+    
+    if (!supabaseSession) {
+      console.log('No Supabase session - setting session to null');
+      setSession(null);
+      return;
+    }
+
+    try {
+      const profile = await fetchUserProfile(supabaseSession.user.id);
+      
+      if (!profile) {
+        console.error('Failed to get profile for user:', supabaseSession.user.id);
+        toast({
+          title: "Σφάλμα προφίλ",
+          description: "Δεν ήταν δυνατή η φόρτωση του προφίλ σας. Παρακαλώ προσπαθήστε ξανά.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      console.log('Profile fetched successfully:', profile.id);
+      
+      setSession({
+        user: profile,
+        accessToken: supabaseSession.access_token,
+      });
+    } catch (error) {
+      console.error('Error updating session:', error);
+      setSession(null);
+    }
+  }, [fetchUserProfile]);
+
+  useEffect(() => {
+    console.log('Checking session...');
+    
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session: supabaseSession } }) => {
+      console.log('Initial session check:', !!supabaseSession);
+      updateSession(supabaseSession).finally(() => {
+        setIsLoading(false);
+        setInitialCheckDone(true);
+      });
+    }).catch(error => {
+      console.error('Error getting initial session:', error);
+      setIsLoading(false);
+      setInitialCheckDone(true);
+    });
+
+    // Set up auth state change listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, supabaseSession) => {
+        console.log('Auth state changed:', event, supabaseSession?.user?.id);
+        
+        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+          console.log('User signed in or token refreshed:', supabaseSession?.user?.id);
+          setIsLoading(true);
+          await updateSession(supabaseSession);
+          setIsLoading(false);
+        } else if (event === 'SIGNED_OUT') {
+          console.log('User signed out');
+          setSession(null);
+        }
+      }
+    );
+
+    // Cleanup subscription on unmount
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [updateSession]);
+
+  return { session, isLoading, setSession, initialCheckDone };
 };
