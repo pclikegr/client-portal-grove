@@ -17,11 +17,17 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!isLoading && !session) {
-      navigate('/auth');
-    } else if (!isLoading && session?.user && !allowedRoles.includes(session.user.role as 'user' | 'admin')) {
-      navigate('/');
-    }
+    const checkAuth = () => {
+      if (!isLoading) {
+        if (!session) {
+          navigate('/auth', { replace: true });
+        } else if (session?.user && !allowedRoles.includes(session.user.role as 'user' | 'admin')) {
+          navigate('/', { replace: true });
+        }
+      }
+    };
+
+    checkAuth();
   }, [session, isLoading, navigate, allowedRoles]);
 
   if (isLoading) {

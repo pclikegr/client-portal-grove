@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { AuthContextType, Session, UserProfile } from '@/types/auth';
 import { supabase } from '@/integrations/supabase/client';
@@ -23,25 +22,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    // Έλεγχος αν υπάρχει ήδη ενεργή συνεδρία
     const checkSession = async () => {
-      setIsLoading(true);
       try {
-        const { data } = await supabase.auth.getSession();
-        if (data.session) {
+        const { data: { session: supabaseSession } } = await supabase.auth.getSession();
+        
+        if (supabaseSession) {
           const { data: profileData, error } = await supabase
             .from('profiles')
             .select('*')
-            .eq('id', data.session.user.id)
+            .eq('id', supabaseSession.user.id)
             .single();
 
           if (error) throw error;
 
-          // Ensure role is either 'user' or 'admin'
           const userRole = profileData.role === 'admin' ? 'admin' : 'user';
 
           setSession({
-            accessToken: data.session.access_token,
+            accessToken: supabaseSession.access_token,
             user: {
               id: profileData.id,
               firstName: profileData.first_name,
@@ -62,24 +59,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     checkSession();
 
-    // Subscription στις αλλαγές της κατάστασης αυθεντικοποίησης
-    const { data: { subscription }} = supabase.auth.onAuthStateChange(async (event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, supabaseSession) => {
       if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-        if (session) {
+        if (supabaseSession) {
           try {
             const { data: profileData, error } = await supabase
               .from('profiles')
               .select('*')
-              .eq('id', session.user.id)
+              .eq('id', supabaseSession.user.id)
               .single();
 
             if (error) throw error;
-            
-            // Ensure role is either 'user' or 'admin'
+
             const userRole = profileData.role === 'admin' ? 'admin' : 'user';
 
             setSession({
-              accessToken: session.access_token,
+              accessToken: supabaseSession.access_token,
               user: {
                 id: profileData.id,
                 firstName: profileData.first_name,
@@ -91,6 +86,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             });
           } catch (error) {
             console.error('Error fetching user profile:', error);
+            setSession(null);
           }
         }
       } else if (event === 'SIGNED_OUT') {
@@ -133,16 +129,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) throw error;
 
-      // Το προφίλ δημιουργείται αυτόματα μέσω του trigger
       toast.success('Η εγγραφή ολοκληρώθηκε με επιτυχία!');
       
-      // Explicitly type the user with the 'user' role
       const userProfile: UserProfile | null = data.user ? {
         id: data.user.id,
         firstName,
         lastName,
         email,
-        role: 'user' // Always assign 'user' role to new users
+        role: 'user'
       } : null;
       
       return { error: null, user: userProfile };
@@ -196,7 +190,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) throw error;
 
-      // Ενημέρωση του τοπικού session
       setSession((prevSession) => {
         if (!prevSession) return prevSession;
         return {
