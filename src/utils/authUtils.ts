@@ -67,6 +67,7 @@ export const signInWithEmail = async (email: string, password: string) => {
  */
 export const signUpWithEmail = async (email: string, password: string, firstName: string, lastName: string) => {
   try {
+    console.log('Attempting sign up with:', email, firstName, lastName);
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -80,6 +81,7 @@ export const signUpWithEmail = async (email: string, password: string, firstName
 
     if (error) throw error;
 
+    console.log('Sign up successful, data:', data);
     toast.success('Η εγγραφή ολοκληρώθηκε με επιτυχία!');
     
     const userProfile: UserProfile | null = data.user ? {
@@ -92,6 +94,7 @@ export const signUpWithEmail = async (email: string, password: string, firstName
     
     return { error: null, user: userProfile };
   } catch (error: any) {
+    console.error('Sign up error:', error);
     toast.error('Η εγγραφή απέτυχε: ' + error.message);
     return { error, user: null };
   }

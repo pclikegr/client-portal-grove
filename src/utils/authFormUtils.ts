@@ -74,6 +74,8 @@ export const useRegisterForm = (signUp: AuthContextType['signUp'], setAuthMethod
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("Form submission started with data:", formData);
+    
     if (!formData.email || !formData.password || !formData.firstName || !formData.lastName) {
       toast.error('Παρακαλώ συμπληρώστε όλα τα πεδία');
       return;
@@ -81,20 +83,23 @@ export const useRegisterForm = (signUp: AuthContextType['signUp'], setAuthMethod
     
     setIsSubmitting(true);
     try {
+      console.log("Calling signUp with:", formData.email, "and name:", formData.firstName, formData.lastName);
       const { error, user } = await signUp(formData.email, formData.password, formData.firstName, formData.lastName);
       
       if (error) {
         console.error('Signup error:', error);
         toast.error(`Σφάλμα εγγραφής: ${error.message}`);
       } else {
+        console.log("Signup successful, user:", user);
         toast.success('Η εγγραφή ολοκληρώθηκε με επιτυχία!');
+        // If we don't have a user returned, it might be because email confirmation is enabled
         if (!user) {
           setAuthMethod('login');
         }
       }
-    } catch (err) {
-      console.error('Signup error:', err);
-      toast.error('Προέκυψε ένα σφάλμα κατά την εγγραφή');
+    } catch (err: any) {
+      console.error('Signup error caught:', err);
+      toast.error(`Προέκυψε ένα σφάλμα κατά την εγγραφή: ${err?.message || 'Unknown error'}`);
     } finally {
       setIsSubmitting(false);
     }

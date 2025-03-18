@@ -9,15 +9,15 @@ export const useOAuthSignIn = (signInWithOAuth: AuthContextType['signInWithOAuth
   const handleOAuthSignIn = async (provider: 'google' | 'facebook' | 'github') => {
     setIsSubmitting(true);
     try {
-      console.log(`Attempting sign in with ${provider}`);
+      console.log(`Attempting OAuth sign in with: ${provider}`);
       const { error } = await signInWithOAuth(provider);
       
       if (error) {
-        console.error(`${provider} login error:`, error);
-        toast.error(`Προέκυψε ένα σφάλμα κατά τη σύνδεση με ${provider}: ${error.message}`);
+        console.error(`OAuth sign in error:`, error);
+        toast.error(`Η σύνδεση με ${provider} απέτυχε: ${error.message}`);
       }
     } catch (err) {
-      console.error(`${provider} login error:`, err);
+      console.error('OAuth sign in error:', err);
       toast.error(`Προέκυψε ένα σφάλμα κατά τη σύνδεση με ${provider}`);
     } finally {
       setIsSubmitting(false);
