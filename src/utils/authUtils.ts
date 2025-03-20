@@ -61,6 +61,8 @@ export const signInWithEmail = async (email: string, password: string) => {
     }
     
     console.log('Sign in successful, auth data:', data);
+    // We don't need to manually update the session here
+    // The onAuthStateChange event will handle that
     return { error: null };
   } catch (error: any) {
     console.error('Sign in error:', error);

@@ -44,7 +44,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const result = await signInWithEmail(email, password);
       console.log('AuthContext: signIn result:', result);
       return result;
-    } catch (error) {
+    } catch (error: any) {
       console.error('AuthContext: signIn error:', error);
       return { error };
     }

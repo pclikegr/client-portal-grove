@@ -16,8 +16,8 @@ const Auth: React.FC = () => {
   
   useEffect(() => {
     console.log('Auth component - Current session state:', {
-      session: session,
-      isLoading: isLoading,
+      session: !!session,
+      isLoading,
       hasUser: Boolean(session?.user),
       authenticatedUser: session?.user?.id,
       returnTo,
@@ -50,6 +50,18 @@ const Auth: React.FC = () => {
         <div className="text-center">
           <Loader2 className="h-10 w-10 animate-spin text-primary mx-auto mb-4" />
           <p>Έλεγχος συνεδρίας...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // If user is already authenticated, show loading while redirecting
+  if (session?.user && !isLoading) {
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-10 w-10 animate-spin text-primary mx-auto mb-4" />
+          <p>Ανακατεύθυνση...</p>
         </div>
       </div>
     );

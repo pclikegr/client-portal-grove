@@ -30,6 +30,8 @@ export const useAuthSession = () => {
         return null;
       }
 
+      console.log('Profile fetched successfully:', data);
+      
       return {
         id: data.id,
         firstName: data.first_name || '',
@@ -69,10 +71,13 @@ export const useAuthSession = () => {
 
       console.log('Profile fetched successfully:', profile.id);
       
-      setSession({
+      const newSession = {
         user: profile,
         accessToken: supabaseSession.access_token,
-      });
+      };
+      
+      console.log('Setting new session:', newSession);
+      setSession(newSession);
     } catch (error) {
       console.error('Error updating session:', error);
       setSession(null);
@@ -127,9 +132,6 @@ export const useAuthSession = () => {
       }
     };
     
-    // First check for initial session before setting up the listener
-    checkInitialSession();
-    
     // Set up auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, supabaseSession) => {
@@ -152,6 +154,9 @@ export const useAuthSession = () => {
         }
       }
     );
+
+    // First check for initial session
+    checkInitialSession();
 
     // Cleanup subscription and prevent state updates after unmount
     return () => {

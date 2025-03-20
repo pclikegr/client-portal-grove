@@ -42,10 +42,9 @@ export const useLoginForm = (signIn: AuthContextType['signIn']) => {
       } else {
         console.log('Sign in successful, redirection should happen automatically');
         toast.success('Επιτυχής σύνδεση!');
-        // We're keeping isSubmitting true as we wait for the redirect
-        // which will happen automatically when the session is updated
+        // We'll keep isSubmitting true as redirection will happen via Auth component
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Login error:', err);
       toast.error('Προέκυψε ένα σφάλμα κατά τη σύνδεση');
       setIsSubmitting(false);
