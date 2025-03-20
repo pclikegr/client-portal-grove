@@ -12,8 +12,8 @@ const Auth: React.FC = () => {
   const { session, isLoading, initialCheckDone } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  // Always redirect to clients page instead of using returnTo
-  const clientsPage = '/clients';
+  // Always redirect to home page
+  const homePage = '/';
   
   useEffect(() => {
     console.log('Auth component - Current session state:', {
@@ -21,14 +21,14 @@ const Auth: React.FC = () => {
       isLoading,
       hasUser: Boolean(session?.user),
       authenticatedUser: session?.user?.id,
-      redirectTarget: clientsPage,
+      redirectTarget: homePage,
       initialCheckDone
     });
     
     // Only redirect when we have a session and we're not loading
     if (session?.user && !isLoading) {
-      console.log('User is authenticated, redirecting to clients page');
-      navigate(clientsPage, { replace: true });
+      console.log('User is authenticated, redirecting to home page');
+      navigate(homePage, { replace: true });
     }
   }, [session, isLoading, navigate, initialCheckDone]);
 
@@ -62,7 +62,7 @@ const Auth: React.FC = () => {
       <div className="h-screen flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="h-10 w-10 animate-spin text-primary mx-auto mb-4" />
-          <p>Ανακατεύθυνση στην σελίδα πελατών...</p>
+          <p>Ανακατεύθυνση στην αρχική σελίδα...</p>
         </div>
       </div>
     );
