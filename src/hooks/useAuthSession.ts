@@ -18,7 +18,7 @@ export const useAuthSession = () => {
         .from('profiles')
         .select('*')
         .eq('id', userId)
-        .maybeSingle();
+        .single();
 
       if (error) {
         console.error('Error fetching user profile:', error);
