@@ -81,39 +81,62 @@ export const useAuthSession = () => {
 
   useEffect(() => {
     console.log('Checking session...');
+    let isMounted = true;
     
     // Set up auth state change listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, supabaseSession) => {
         console.log('Auth state changed:', event, supabaseSession?.user?.id);
         
+        if (!isMounted) return;
+        
         if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
           console.log('User signed in or token refreshed:', supabaseSession?.user?.id);
           setIsLoading(true);
           await updateSession(supabaseSession);
-          setIsLoading(false);
+          if (isMounted) {
+            setIsLoading(false);
+          }
         } else if (event === 'SIGNED_OUT') {
           console.log('User signed out');
-          setSession(null);
+          if (isMounted) {
+            setSession(null);
+          }
         }
       }
     );
 
     // Then get initial session
-    supabase.auth.getSession().then(({ data: { session: supabaseSession } }) => {
-      console.log('Initial session check:', !!supabaseSession);
-      updateSession(supabaseSession).finally(() => {
-        setIsLoading(false);
-        setInitialCheckDone(true);
-      });
-    }).catch(error => {
-      console.error('Error getting initial session:', error);
-      setIsLoading(false);
-      setInitialCheckDone(true);
-    });
+    const checkInitialSession = async () => {
+      try {
+        const { data: { session: supabaseSession } } = await supabase.auth.getSession();
+        console.log('Initial session check:', !!supabaseSession);
+        
+        if (!isMounted) return;
+        
+        if (supabaseSession) {
+          await updateSession(supabaseSession);
+        } else {
+          setSession(null);
+        }
+      } catch (error) {
+        console.error('Error getting initial session:', error);
+        if (isMounted) {
+          setSession(null);
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+          setInitialCheckDone(true);
+        }
+      }
+    };
 
-    // Cleanup subscription on unmount
+    checkInitialSession();
+
+    // Cleanup subscription and prevent state updates after unmount
     return () => {
+      isMounted = false;
       subscription.unsubscribe();
     };
   }, [updateSession]);
