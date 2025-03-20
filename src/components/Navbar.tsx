@@ -1,68 +1,84 @@
 
 import React from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Users, UserPlus, HomeIcon, Laptop, FileText } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Link, useLocation } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { useAuth } from '@/contexts/AuthContext';
+import { LogOut, User } from 'lucide-react';
+import { toast } from 'sonner';
 
 const Navbar: React.FC = () => {
   const location = useLocation();
-  const navigate = useNavigate();
+  const { session, signOut } = useAuth();
   
   const isActive = (path: string) => {
     return location.pathname === path;
   };
-
+  
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      toast.success('Αποσυνδεθήκατε με επιτυχία');
+    } catch (error) {
+      toast.error('Παρουσιάστηκε πρόβλημα κατά την αποσύνδεση');
+    }
+  };
+  
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/40 transition-all duration-300 animate-fade-in">
-      <div className="container mx-auto px-4 py-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <span className="text-primary font-semibold text-xl tracking-tight">
-              ClientBook
-            </span>
-          </div>
-          
-          <nav className="flex items-center space-x-1">
-            <Link 
-              to="/" 
-              className={cn("nav-link flex items-center gap-1", isActive('/') && "active")}
-            >
-              <HomeIcon className="h-4 w-4" />
-              <span>Αρχική</span>
-            </Link>
-            
-            <Link 
-              to="/clients" 
-              className={cn("nav-link flex items-center gap-1", isActive('/clients') && "active")}
-            >
-              <Users className="h-4 w-4" />
-              <span>Πελάτες</span>
-            </Link>
-            
-            <Link 
-              to="/clients/add" 
-              className={cn("nav-link flex items-center gap-1", isActive('/clients/add') && "active")}
-            >
-              <UserPlus className="h-4 w-4" />
-              <span>Νέος Πελάτης</span>
-            </Link>
-
-            <Link 
-              to="/devices" 
-              className={cn("nav-link flex items-center gap-1", isActive('/devices') && "active")}
-            >
-              <Laptop className="h-4 w-4" />
-              <span>Συσκευές</span>
-            </Link>
-
-            <Link 
-              to="/technical-reports" 
-              className={cn("nav-link flex items-center gap-1", isActive('/technical-reports') && "active")}
-            >
-              <FileText className="h-4 w-4" />
-              <span>Τεχνικές Εκθέσεις</span>
-            </Link>
-          </nav>
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container flex h-16 items-center">
+        <div className="mr-4 hidden md:flex">
+          <Link to="/" className="mr-6 flex items-center space-x-2">
+            <span className="font-bold text-xl">ClientBook</span>
+          </Link>
+          {session && (
+            <nav className="flex items-center space-x-6 text-sm font-medium">
+              <Link
+                to="/clients"
+                className={`transition-colors hover:text-foreground/80 ${
+                  isActive('/clients') || location.pathname.startsWith('/clients/') ? 'text-foreground' : 'text-foreground/60'
+                }`}
+              >
+                Πελάτες
+              </Link>
+              <Link
+                to="/devices"
+                className={`transition-colors hover:text-foreground/80 ${
+                  isActive('/devices') || location.pathname.startsWith('/devices/') ? 'text-foreground' : 'text-foreground/60'
+                }`}
+              >
+                Συσκευές
+              </Link>
+              <Link
+                to="/technical-reports"
+                className={`transition-colors hover:text-foreground/80 ${
+                  isActive('/technical-reports') || location.pathname.startsWith('/technical-reports/') ? 'text-foreground' : 'text-foreground/60'
+                }`}
+              >
+                Τεχνικές Εκθέσεις
+              </Link>
+            </nav>
+          )}
+        </div>
+        
+        <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
+          {session ? (
+            <div className="flex items-center gap-2">
+              <Link to="/profile">
+                <Button variant="outline" size="icon" title="Προφίλ">
+                  <User className="h-[1.2rem] w-[1.2rem]" />
+                </Button>
+              </Link>
+              <Button variant="outline" size="icon" onClick={handleSignOut} title="Αποσύνδεση">
+                <LogOut className="h-[1.2rem] w-[1.2rem]" />
+              </Button>
+            </div>
+          ) : (
+            location.pathname !== '/auth' && (
+              <Link to="/auth">
+                <Button>Σύνδεση</Button>
+              </Link>
+            )
+          )}
         </div>
       </div>
     </header>
