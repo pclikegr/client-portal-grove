@@ -72,8 +72,10 @@ export type Database = {
           model: string
           problem: string
           received_at: string | null
+          returned_at: string | null
           serial_number: string | null
           status: string
+          technical_report_id: string | null
           type: string
           updated_at: string
           user_id: string
@@ -86,8 +88,10 @@ export type Database = {
           model: string
           problem: string
           received_at?: string | null
+          returned_at?: string | null
           serial_number?: string | null
           status: string
+          technical_report_id?: string | null
           type: string
           updated_at?: string
           user_id: string
@@ -100,8 +104,10 @@ export type Database = {
           model?: string
           problem?: string
           received_at?: string | null
+          returned_at?: string | null
           serial_number?: string | null
           status?: string
+          technical_report_id?: string | null
           type?: string
           updated_at?: string
           user_id?: string
@@ -112,6 +118,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "devices_technical_report_id_fkey"
+            columns: ["technical_report_id"]
+            isOneToOne: false
+            referencedRelation: "technical_reports"
             referencedColumns: ["id"]
           },
         ]

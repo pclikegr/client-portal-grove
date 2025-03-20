@@ -1,105 +1,159 @@
 
 import { TechnicalReport, CreateTechnicalReportData, UpdateTechnicalReportData } from "@/types/client";
 import { updateDevice, getDeviceById } from "./devices";
+import { supabase } from "@/integrations/supabase/client";
 
-// Αρχικά δεδομένα τεχνικών εκθέσεων
-export const technicalReports: TechnicalReport[] = [
-  {
-    id: "1",
-    deviceId: "2",
-    clientId: "1",
-    diagnosis: "Σπασμένη οθόνη και ζημιά στο digitizer",
-    solution: "Αντικατάσταση οθόνης και digitizer",
-    cost: 120,
-    timeSpent: 1.5,
-    completed: true,
-    createdAt: new Date("2023-04-11"),
-    updatedAt: new Date("2023-04-12")
+export const getTechnicalReports = async (): Promise<TechnicalReport[]> => {
+  const { data, error } = await supabase
+    .from('technical_reports')
+    .select('*');
+  
+  if (error) {
+    console.error("Error fetching technical reports:", error);
+    throw error;
   }
-];
-
-// Λειτουργίες για χειρισμό των δεδομένων
-let technicalReportsData = [...technicalReports];
-
-export const getTechnicalReports = (): TechnicalReport[] => {
-  return [...technicalReportsData];
+  
+  return data as TechnicalReport[];
 };
 
-export const getTechnicalReportById = (id: string): TechnicalReport | undefined => {
-  return technicalReportsData.find(report => report.id === id);
+export const getTechnicalReportById = async (id: string): Promise<TechnicalReport | undefined> => {
+  const { data, error } = await supabase
+    .from('technical_reports')
+    .select('*')
+    .eq('id', id)
+    .single();
+  
+  if (error) {
+    console.error(`Error fetching technical report ${id}:`, error);
+    return undefined;
+  }
+  
+  return data as TechnicalReport;
 };
 
-export const getTechnicalReportByDeviceId = (deviceId: string): TechnicalReport | undefined => {
-  return technicalReportsData.find(report => report.deviceId === deviceId);
+export const getTechnicalReportByDeviceId = async (deviceId: string): Promise<TechnicalReport | undefined> => {
+  const { data, error } = await supabase
+    .from('technical_reports')
+    .select('*')
+    .eq('device_id', deviceId)
+    .single();
+  
+  if (error && error.code !== 'PGRST116') { // PGRST116 is "No rows returned" error
+    console.error(`Error fetching technical report for device ${deviceId}:`, error);
+    return undefined;
+  }
+  
+  return data as TechnicalReport;
 };
 
-export const addTechnicalReport = (report: CreateTechnicalReportData): TechnicalReport => {
-  const newReport: TechnicalReport = {
-    ...report,
-    id: Date.now().toString(),
-    completed: report.completed || false,
-    createdAt: new Date(),
-    updatedAt: new Date()
+export const addTechnicalReport = async (report: CreateTechnicalReportData): Promise<TechnicalReport> => {
+  // Convert camelCase to snake_case for Supabase
+  const formattedReport = {
+    device_id: report.deviceId,
+    client_id: report.clientId,
+    diagnosis: report.diagnosis,
+    solution: report.solution,
+    cost: report.cost,
+    time_spent: report.timeSpent,
+    completed: report.completed || false
   };
   
-  technicalReportsData = [...technicalReportsData, newReport];
+  const { data, error } = await supabase
+    .from('technical_reports')
+    .insert([formattedReport])
+    .select()
+    .single();
   
-  // Ενημέρωση της συσκευής με το technicalReportId
-  const device = getDeviceById(report.deviceId);
-  if (device) {
-    updateDevice(report.deviceId, { 
-      status: report.completed ? 'completed' : 'in_progress'
+  if (error) {
+    console.error("Error adding technical report:", error);
+    throw error;
+  }
+
+  // Update the device status
+  try {
+    await updateDevice(report.deviceId, {
+      status: report.completed ? 'completed' : 'in_progress',
+      technicalReportId: data.id
     });
-    
-    // Update the device object directly (outside the type system)
-    const deviceAny = getDeviceById(report.deviceId) as any;
-    if (deviceAny) {
-      deviceAny.technicalReportId = newReport.id;
+  } catch (error) {
+    console.error("Error updating device after adding technical report:", error);
+  }
+  
+  return data as TechnicalReport;
+};
+
+export const updateTechnicalReport = async (id: string, updates: Partial<UpdateTechnicalReportData>): Promise<TechnicalReport | undefined> => {
+  // Get the existing report first
+  const existingReport = await getTechnicalReportById(id);
+  
+  if (!existingReport) {
+    return undefined;
+  }
+  
+  // Convert camelCase to snake_case for Supabase
+  const formattedUpdates: any = {};
+  
+  if (updates.deviceId) formattedUpdates.device_id = updates.deviceId;
+  if (updates.clientId) formattedUpdates.client_id = updates.clientId;
+  if (updates.diagnosis) formattedUpdates.diagnosis = updates.diagnosis;
+  if (updates.solution) formattedUpdates.solution = updates.solution;
+  if (updates.cost !== undefined) formattedUpdates.cost = updates.cost;
+  if (updates.timeSpent !== undefined) formattedUpdates.time_spent = updates.timeSpent;
+  if (updates.completed !== undefined) formattedUpdates.completed = updates.completed;
+  
+  const { data, error } = await supabase
+    .from('technical_reports')
+    .update(formattedUpdates)
+    .eq('id', id)
+    .select()
+    .single();
+  
+  if (error) {
+    console.error(`Error updating technical report ${id}:`, error);
+    return undefined;
+  }
+  
+  // Update the device status if completion status changed
+  if (updates.completed !== undefined) {
+    try {
+      await updateDevice(existingReport.deviceId, {
+        status: updates.completed ? 'completed' : 'in_progress'
+      });
+    } catch (error) {
+      console.error("Error updating device after updating technical report:", error);
     }
   }
   
-  return newReport;
+  return data as TechnicalReport;
 };
 
-export const updateTechnicalReport = (id: string, updates: Partial<UpdateTechnicalReportData>): TechnicalReport | undefined => {
-  const index = technicalReportsData.findIndex(report => report.id === id);
+export const deleteTechnicalReport = async (id: string): Promise<boolean> => {
+  // Get the report before deleting to know which device to update
+  const report = await getTechnicalReportById(id);
   
-  if (index === -1) return undefined;
+  if (!report) {
+    return false;
+  }
   
-  const updatedReport: TechnicalReport = {
-    ...technicalReportsData[index],
-    ...updates,
-    updatedAt: new Date()
-  };
+  const { error } = await supabase
+    .from('technical_reports')
+    .delete()
+    .eq('id', id);
   
-  technicalReportsData[index] = updatedReport;
+  if (error) {
+    console.error(`Error deleting technical report ${id}:`, error);
+    return false;
+  }
   
-  // Αν η έκθεση έχει ολοκληρωθεί, ενημερώνουμε και την κατάσταση της συσκευής
-  if (updates.completed !== undefined) {
-    updateDevice(updatedReport.deviceId, { 
-      status: updates.completed ? 'completed' : 'in_progress'
+  // Update the device status
+  try {
+    await updateDevice(report.deviceId, {
+      status: 'pending',
+      technicalReportId: null
     });
+  } catch (error) {
+    console.error("Error updating device after deleting technical report:", error);
   }
   
-  return updatedReport;
-};
-
-export const deleteTechnicalReport = (id: string): boolean => {
-  const report = getTechnicalReportById(id);
-  if (!report) return false;
-  
-  // Ενημέρωση της συσκευής για την αφαίρεση του technicalReportId
-  updateDevice(report.deviceId, { 
-    status: 'pending'
-  });
-  
-  // Update the device object directly (outside the type system)
-  const deviceAny = getDeviceById(report.deviceId) as any;
-  if (deviceAny) {
-    deviceAny.technicalReportId = undefined;
-  }
-  
-  const initialLength = technicalReportsData.length;
-  technicalReportsData = technicalReportsData.filter(report => report.id !== id);
-  return technicalReportsData.length !== initialLength;
+  return true;
 };
