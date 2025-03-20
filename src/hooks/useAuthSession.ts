@@ -63,6 +63,7 @@ export const useAuthSession = () => {
           description: "Δεν ήταν δυνατή η φόρτωση του προφίλ σας. Παρακαλώ προσπαθήστε ξανά.",
           variant: "destructive",
         });
+        setSession(null);
         return;
       }
 
@@ -81,20 +82,7 @@ export const useAuthSession = () => {
   useEffect(() => {
     console.log('Checking session...');
     
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session: supabaseSession } }) => {
-      console.log('Initial session check:', !!supabaseSession);
-      updateSession(supabaseSession).finally(() => {
-        setIsLoading(false);
-        setInitialCheckDone(true);
-      });
-    }).catch(error => {
-      console.error('Error getting initial session:', error);
-      setIsLoading(false);
-      setInitialCheckDone(true);
-    });
-
-    // Set up auth state change listener
+    // Set up auth state change listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, supabaseSession) => {
         console.log('Auth state changed:', event, supabaseSession?.user?.id);
@@ -110,6 +98,19 @@ export const useAuthSession = () => {
         }
       }
     );
+
+    // Then get initial session
+    supabase.auth.getSession().then(({ data: { session: supabaseSession } }) => {
+      console.log('Initial session check:', !!supabaseSession);
+      updateSession(supabaseSession).finally(() => {
+        setIsLoading(false);
+        setInitialCheckDone(true);
+      });
+    }).catch(error => {
+      console.error('Error getting initial session:', error);
+      setIsLoading(false);
+      setInitialCheckDone(true);
+    });
 
     // Cleanup subscription on unmount
     return () => {

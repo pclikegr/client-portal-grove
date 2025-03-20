@@ -26,13 +26,10 @@ const Auth: React.FC = () => {
     // Only redirect when we have a session and we're not loading
     if (session?.user && !isLoading) {
       console.log('User is authenticated, redirecting to:', returnTo);
-      setTimeout(() => {
-        navigate(returnTo, { replace: true });
-      }, 100);
+      navigate(returnTo, { replace: true });
     }
   }, [session, isLoading, navigate, returnTo]);
 
-  // If we're still loading, show some feedback
   if (isLoading) {
     return (
       <div className="h-screen flex items-center justify-center">
