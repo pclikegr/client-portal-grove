@@ -31,8 +31,20 @@ const Auth: React.FC = () => {
     }
   }, [session, isLoading, navigate, returnTo, initialCheckDone]);
 
-  // Simplify loading condition - show login form as soon as possible
-  if (isLoading && !initialCheckDone) {
+  // Display login form after a short timeout if still loading
+  // This prevents being stuck on the loading screen
+  const [forceShowForm, setForceShowForm] = useState(false);
+  
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setForceShowForm(true);
+    }, 3000); // Show form after 3 seconds even if still loading
+    
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Show login form either if initial check is done or after timeout
+  if (!forceShowForm && isLoading && !initialCheckDone) {
     return (
       <div className="h-screen flex items-center justify-center">
         <div className="text-center">

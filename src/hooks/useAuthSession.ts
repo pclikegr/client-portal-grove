@@ -83,27 +83,46 @@ export const useAuthSession = () => {
     console.log('Checking session...');
     let isMounted = true;
     
+    // Set initial flag for showing login form regardless of auth state
     const checkInitialSession = async () => {
       try {
+        // Set a timeout to ensure the initialCheckDone will be set even if other operations fail
+        const timeoutId = setTimeout(() => {
+          if (isMounted) {
+            console.log('Setting initialCheckDone due to timeout');
+            setIsLoading(false);
+            setInitialCheckDone(true);
+          }
+        }, 5000);
+        
         const { data: { session: supabaseSession } } = await supabase.auth.getSession();
         console.log('Initial session check:', !!supabaseSession);
         
-        if (!isMounted) return;
+        if (!isMounted) {
+          clearTimeout(timeoutId);
+          return;
+        }
         
         if (supabaseSession) {
           await updateSession(supabaseSession);
         } else {
           setSession(null);
         }
+        
+        clearTimeout(timeoutId);
+        
+        if (isMounted) {
+          setIsLoading(false);
+          setInitialCheckDone(true);
+          console.log('Initial session check complete, initialCheckDone set to true');
+        }
       } catch (error) {
         console.error('Error getting initial session:', error);
         if (isMounted) {
           setSession(null);
-        }
-      } finally {
-        if (isMounted) {
           setIsLoading(false);
           setInitialCheckDone(true);
+          console.log('Error in initial session check, initialCheckDone set to true');
         }
       }
     };
