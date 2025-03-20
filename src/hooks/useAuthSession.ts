@@ -18,7 +18,7 @@ export const useAuthSession = () => {
         .from('profiles')
         .select('*')
         .eq('id', userId)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Error fetching user profile:', error);
@@ -83,30 +83,6 @@ export const useAuthSession = () => {
     console.log('Checking session...');
     let isMounted = true;
     
-    // Set up auth state change listener first
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, supabaseSession) => {
-        console.log('Auth state changed:', event, supabaseSession?.user?.id);
-        
-        if (!isMounted) return;
-        
-        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-          console.log('User signed in or token refreshed:', supabaseSession?.user?.id);
-          setIsLoading(true);
-          await updateSession(supabaseSession);
-          if (isMounted) {
-            setIsLoading(false);
-          }
-        } else if (event === 'SIGNED_OUT') {
-          console.log('User signed out');
-          if (isMounted) {
-            setSession(null);
-          }
-        }
-      }
-    );
-
-    // Then get initial session
     const checkInitialSession = async () => {
       try {
         const { data: { session: supabaseSession } } = await supabase.auth.getSession();
@@ -131,11 +107,36 @@ export const useAuthSession = () => {
         }
       }
     };
-
+    
+    // First check for initial session before setting up the listener
     checkInitialSession();
+    
+    // Set up auth state change listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, supabaseSession) => {
+        console.log('Auth state changed:', event, supabaseSession?.user?.id);
+        
+        if (!isMounted) return;
+        
+        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+          console.log('User signed in or token refreshed:', supabaseSession?.user?.id);
+          setIsLoading(true);
+          await updateSession(supabaseSession);
+          if (isMounted) {
+            setIsLoading(false);
+          }
+        } else if (event === 'SIGNED_OUT') {
+          console.log('User signed out');
+          if (isMounted) {
+            setSession(null);
+          }
+        }
+      }
+    );
 
     // Cleanup subscription and prevent state updates after unmount
     return () => {
+      console.log('useAuthSession cleanup');
       isMounted = false;
       subscription.unsubscribe();
     };

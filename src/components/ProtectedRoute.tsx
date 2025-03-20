@@ -13,24 +13,24 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   children, 
   allowedRoles 
 }) => {
-  const { session, isLoading } = useAuth();
+  const { session, isLoading, initialCheckDone } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   
   useEffect(() => {
-    // Only redirect if we're not loading and there's no session
-    if (!isLoading && !session) {
+    // Only redirect if initial check is done and there's no session
+    if (initialCheckDone && !session) {
       console.log('User not authenticated, redirecting to auth page');
       const returnTo = encodeURIComponent(location.pathname + location.search);
       navigate(`/auth?returnTo=${returnTo}`, { replace: true });
-    } else if (!isLoading && session && allowedRoles && !allowedRoles.includes(session.user?.role || 'user')) {
+    } else if (initialCheckDone && session && allowedRoles && !allowedRoles.includes(session.user?.role || 'user')) {
       // User is logged in but doesn't have the required role
       console.log('User does not have required role, redirecting to home');
       navigate('/', { replace: true });
     }
-  }, [session, isLoading, navigate, location, allowedRoles]);
+  }, [session, isLoading, initialCheckDone, navigate, location, allowedRoles]);
   
-  if (isLoading) {
+  if (isLoading || !initialCheckDone) {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-64px)]">
         <div className="text-center">

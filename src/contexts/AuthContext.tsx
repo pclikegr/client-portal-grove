@@ -15,6 +15,7 @@ const initialSession: Session = { user: null, accessToken: null };
 export const AuthContext = createContext<AuthContextType>({
   session: initialSession,
   isLoading: true,
+  initialCheckDone: false,
   signIn: async () => ({ error: null }),
   signUp: async () => ({ error: null, user: null }),
   signOut: async () => ({ error: null }),
@@ -25,16 +26,17 @@ export const AuthContext = createContext<AuthContextType>({
 export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { session, isLoading, setSession } = useAuthSession();
+  const { session, isLoading, setSession, initialCheckDone } = useAuthSession();
 
   // Add this useEffect for debugging session state
   useEffect(() => {
     console.log('AuthProvider: session state updated', { 
       hasUser: !!session?.user, 
       userId: session?.user?.id || 'no user', 
-      isLoading 
+      isLoading,
+      initialCheckDone
     });
-  }, [session, isLoading]);
+  }, [session, isLoading, initialCheckDone]);
 
   const signIn = async (email: string, password: string) => {
     console.log('AuthContext: signIn called with email:', email);
@@ -118,6 +120,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const value: AuthContextType = {
     session,
     isLoading,
+    initialCheckDone,
     signIn,
     signUp,
     signOut,
@@ -125,7 +128,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signInWithOAuth,
   };
 
-  console.log('AuthContext rendering with session:', session?.user?.id || 'no user', 'isLoading:', isLoading);
+  console.log('AuthContext rendering with session:', session?.user?.id || 'no user', 'isLoading:', isLoading, 'initialCheckDone:', initialCheckDone);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

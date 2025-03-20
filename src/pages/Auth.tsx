@@ -9,7 +9,7 @@ import { Loader2 } from 'lucide-react';
 
 const Auth: React.FC = () => {
   const [authMethod, setAuthMethod] = useState<'login' | 'register'>('login');
-  const { session, isLoading } = useAuth();
+  const { session, isLoading, initialCheckDone } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const returnTo = new URLSearchParams(location.search).get('returnTo') || '/';
@@ -20,7 +20,8 @@ const Auth: React.FC = () => {
       isLoading: isLoading,
       hasUser: Boolean(session?.user),
       authenticatedUser: session?.user?.id,
-      returnTo
+      returnTo,
+      initialCheckDone
     });
     
     // Only redirect when we have a session and we're not loading
@@ -28,9 +29,10 @@ const Auth: React.FC = () => {
       console.log('User is authenticated, redirecting to:', returnTo);
       navigate(returnTo, { replace: true });
     }
-  }, [session, isLoading, navigate, returnTo]);
+  }, [session, isLoading, navigate, returnTo, initialCheckDone]);
 
-  if (isLoading) {
+  // Simplify loading condition - show login form as soon as possible
+  if (isLoading && !initialCheckDone) {
     return (
       <div className="h-screen flex items-center justify-center">
         <div className="text-center">

@@ -16,6 +16,7 @@ export interface Session {
 export interface AuthContextType {
   session: Session | null;
   isLoading: boolean;
+  initialCheckDone: boolean;
   signIn: (email: string, password: string) => Promise<{ error: any | null }>;
   signUp: (email: string, password: string, firstName: string, lastName: string) => Promise<{ error: any | null, user: UserProfile | null }>;
   signOut: () => Promise<{ error: any | null }>;
