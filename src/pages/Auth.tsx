@@ -12,7 +12,8 @@ const Auth: React.FC = () => {
   const { session, isLoading, initialCheckDone } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const returnTo = new URLSearchParams(location.search).get('returnTo') || '/';
+  // Always redirect to clients page instead of using returnTo
+  const clientsPage = '/clients';
   
   useEffect(() => {
     console.log('Auth component - Current session state:', {
@@ -20,16 +21,16 @@ const Auth: React.FC = () => {
       isLoading,
       hasUser: Boolean(session?.user),
       authenticatedUser: session?.user?.id,
-      returnTo,
+      redirectTarget: clientsPage,
       initialCheckDone
     });
     
     // Only redirect when we have a session and we're not loading
     if (session?.user && !isLoading) {
-      console.log('User is authenticated, redirecting to:', returnTo);
-      navigate(returnTo, { replace: true });
+      console.log('User is authenticated, redirecting to clients page');
+      navigate(clientsPage, { replace: true });
     }
-  }, [session, isLoading, navigate, returnTo, initialCheckDone]);
+  }, [session, isLoading, navigate, initialCheckDone]);
 
   // Display login form after a short timeout if still loading
   // This prevents being stuck on the loading screen
@@ -61,7 +62,7 @@ const Auth: React.FC = () => {
       <div className="h-screen flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="h-10 w-10 animate-spin text-primary mx-auto mb-4" />
-          <p>Ανακατεύθυνση...</p>
+          <p>Ανακατεύθυνση στην σελίδα πελατών...</p>
         </div>
       </div>
     );
