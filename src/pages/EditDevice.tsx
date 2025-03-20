@@ -1,98 +1,84 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { getDeviceById, updateDevice } from '@/data/devices';
-import { Device, UpdateDeviceData } from '@/types/client';
 import DeviceForm from '@/components/DeviceForm';
 import { toast } from '@/components/ui/use-toast';
+import { Device, UpdateDeviceData } from '@/types/client';
+import { getDeviceById, updateDevice } from '@/data/devices';
+import { useQueryClient } from '@tanstack/react-query';
 
 const EditDevice: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { deviceId } = useParams<{ deviceId: string }>();
   const [device, setDevice] = useState<Device | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isNotFound, setIsNotFound] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   useEffect(() => {
-    if (!id) {
-      setIsNotFound(true);
-      return;
-    }
+    const fetchDevice = async () => {
+      if (!deviceId) return;
+      
+      try {
+        const deviceData = await getDeviceById(deviceId);
+        setDevice(deviceData || null);
+      } catch (error) {
+        console.error("Error fetching device:", error);
+        toast({
+          title: "Σφάλμα",
+          description: "Δεν ήταν δυνατή η ανάκτηση των στοιχείων της συσκευής.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
     
-    const deviceData = getDeviceById(id);
-    
-    if (!deviceData) {
-      setIsNotFound(true);
-      toast({
-        title: "Σφάλμα",
-        description: "Η συσκευή δεν βρέθηκε.",
-        variant: "destructive",
-      });
-    } else {
-      setDevice(deviceData);
-    }
-  }, [id]);
+    fetchDevice();
+  }, [deviceId]);
   
-  const handleSubmit = (data: UpdateDeviceData) => {
-    if (!id) return;
+  const handleSubmit = async (data: UpdateDeviceData) => {
+    if (!deviceId) return;
     
-    setIsLoading(true);
+    setIsSubmitting(true);
     
     try {
-      const updatedDevice = updateDevice(id, data);
-      
-      if (updatedDevice) {
-        toast({
-          title: "Επιτυχής ενημέρωση",
-          description: "Τα στοιχεία της συσκευής ενημερώθηκαν επιτυχώς.",
-        });
-        
-        navigate(`/devices/${id}`);
-      } else {
-        throw new Error('Αποτυχία ενημέρωσης συσκευής');
-      }
-    } catch (error) {
-      console.error('Σφάλμα κατά την ενημέρωση:', error);
+      await updateDevice(deviceId, data);
+      queryClient.invalidateQueries({ queryKey: ['devices'] });
+      queryClient.invalidateQueries({ queryKey: ['device', deviceId] });
       
       toast({
+        title: "Επιτυχής ενημέρωση",
+        description: "Τα στοιχεία της συσκευής ενημερώθηκαν επιτυχώς.",
+      });
+      
+      navigate(`/devices/${deviceId}`);
+    } catch (error) {
+      console.error("Error updating device:", error);
+      toast({
         title: "Σφάλμα",
-        description: "Υπήρξε ένα πρόβλημα κατά την ενημέρωση της συσκευής.",
+        description: "Υπήρξε ένα πρόβλημα κατά την ενημέρωση της συσκευής. Προσπαθήστε ξανά.",
         variant: "destructive",
       });
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
   
-  if (isNotFound) {
-    return (
-      <div className="min-h-screen pt-20 px-4 md:px-8">
-        <div className="max-w-3xl mx-auto text-center">
-          <h1 className="text-2xl font-bold mb-4">Η συσκευή δεν βρέθηκε</h1>
-          <p className="text-muted-foreground mb-6">
-            Η συσκευή που προσπαθείτε να επεξεργαστείτε δεν υπάρχει ή έχει διαγραφεί.
-          </p>
-          <button 
-            onClick={() => navigate('/devices')}
-            className="text-primary hover:underline"
-          >
-            Επιστροφή στη λίστα συσκευών
-          </button>
-        </div>
-      </div>
-    );
+  if (isLoading) {
+    return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
   }
   
   if (!device) {
     return (
-      <div className="min-h-screen pt-20 px-4 md:px-8">
-        <div className="max-w-3xl mx-auto">
-          <div className="mb-6 animate-pulse">
-            <div className="h-8 w-48 bg-muted rounded mb-2"></div>
-            <div className="h-4 w-full bg-muted rounded"></div>
-          </div>
-          <div className="w-full h-[500px] bg-card animate-pulse rounded-lg"></div>
-        </div>
+      <div className="flex flex-col justify-center items-center min-h-screen">
+        <h2 className="text-xl mb-4">Η συσκευή δεν βρέθηκε</h2>
+        <button 
+          onClick={() => navigate('/devices')}
+          className="px-4 py-2 bg-primary text-white rounded-md"
+        >
+          Επιστροφή στις Συσκευές
+        </button>
       </div>
     );
   }
@@ -103,14 +89,15 @@ const EditDevice: React.FC = () => {
         <div className="mb-6 animate-fade-in">
           <h1 className="text-2xl font-bold">Επεξεργασία Συσκευής</h1>
           <p className="text-muted-foreground mt-1">
-            Επεξεργαστείτε τα στοιχεία της συσκευής {device.brand} {device.model}.
+            Τροποποιήστε τα στοιχεία της συσκευής παρακάτω.
           </p>
         </div>
         
-        <DeviceForm 
-          device={device} 
-          onSubmit={handleSubmit} 
-          isLoading={isLoading}
+        <DeviceForm
+          device={device}
+          clientId={device.clientId}
+          onSubmit={handleSubmit}
+          isLoading={isSubmitting}
           isEditing={true}
         />
       </div>

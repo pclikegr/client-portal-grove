@@ -2,6 +2,25 @@
 import { Device, CreateDeviceData, UpdateDeviceData, DeviceType } from "@/types/client";
 import { supabase } from "@/integrations/supabase/client";
 
+// Helper function to convert Supabase response to Device type
+const mapToDevice = (data: any): Device => {
+  return {
+    id: data.id,
+    clientId: data.client_id,
+    type: data.type as DeviceType,
+    brand: data.brand,
+    model: data.model,
+    serialNumber: data.serial_number || '',
+    problem: data.problem,
+    status: data.status,
+    technicalReportId: data.technical_report_id || undefined,
+    createdAt: new Date(data.created_at),
+    updatedAt: new Date(data.updated_at),
+    receivedAt: data.received_at ? new Date(data.received_at) : undefined,
+    returnedAt: data.returned_at ? new Date(data.returned_at) : undefined
+  };
+};
+
 export const getDevices = async (): Promise<Device[]> => {
   const { data, error } = await supabase
     .from('devices')
@@ -12,7 +31,7 @@ export const getDevices = async (): Promise<Device[]> => {
     throw error;
   }
   
-  return data as Device[];
+  return Array.isArray(data) ? data.map(mapToDevice) : [];
 };
 
 export const getDevicesByClientId = async (clientId: string): Promise<Device[]> => {
@@ -26,7 +45,7 @@ export const getDevicesByClientId = async (clientId: string): Promise<Device[]> 
     throw error;
   }
   
-  return data as Device[];
+  return Array.isArray(data) ? data.map(mapToDevice) : [];
 };
 
 export const getDeviceById = async (id: string): Promise<Device | undefined> => {
@@ -41,10 +60,17 @@ export const getDeviceById = async (id: string): Promise<Device | undefined> => 
     return undefined;
   }
   
-  return data as Device;
+  return data ? mapToDevice(data) : undefined;
 };
 
 export const addDevice = async (device: CreateDeviceData): Promise<Device> => {
+  // Get current user
+  const { data: { session } } = await supabase.auth.getSession();
+  
+  if (!session?.user) {
+    throw new Error("You must be logged in to add a device");
+  }
+  
   // Convert camelCase to snake_case for Supabase
   const formattedDevice = {
     client_id: device.clientId,
@@ -54,7 +80,8 @@ export const addDevice = async (device: CreateDeviceData): Promise<Device> => {
     serial_number: device.serialNumber,
     problem: device.problem,
     received_at: device.receivedAt || new Date(),
-    status: 'pending'
+    status: 'pending',
+    user_id: session.user.id
   };
   
   const { data, error } = await supabase
@@ -68,7 +95,7 @@ export const addDevice = async (device: CreateDeviceData): Promise<Device> => {
     throw error;
   }
   
-  return data as Device;
+  return mapToDevice(data);
 };
 
 export const updateDevice = async (id: string, updates: Partial<UpdateDeviceData>): Promise<Device | undefined> => {
@@ -98,7 +125,7 @@ export const updateDevice = async (id: string, updates: Partial<UpdateDeviceData
     return undefined;
   }
   
-  return data as Device;
+  return mapToDevice(data);
 };
 
 export const deleteDevice = async (id: string): Promise<boolean> => {
@@ -132,5 +159,5 @@ export const searchDevices = async (query: string): Promise<Device[]> => {
     throw error;
   }
   
-  return data as Device[];
+  return Array.isArray(data) ? data.map(mapToDevice) : [];
 };

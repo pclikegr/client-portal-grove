@@ -1,95 +1,54 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { addDevice } from '@/data/devices';
-import { addTechnicalReport } from '@/data/technicalReports';
-import { getClientById } from '@/data/clients';
-import { CreateDeviceData, Client, CreateTechnicalReportData } from '@/types/client';
 import DeviceForm from '@/components/DeviceForm';
 import { toast } from '@/components/ui/use-toast';
+import { DeviceType, CreateDeviceData } from '@/types/client';
+import { addDevice } from '@/data/devices';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 const AddDevice: React.FC = () => {
   const navigate = useNavigate();
-  const { clientId } = useParams<{ clientId: string }>();
-  const [isLoading, setIsLoading] = useState(false);
-  const [client, setClient] = useState<Client | null>(null);
+  const queryClient = useQueryClient();
+  const { clientId } = useParams();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
-  useEffect(() => {
-    const loadClient = async () => {
-      if (clientId) {
-        try {
-          const clientData = await getClientById(clientId);
-          if (clientData) {
-            setClient(clientData);
-          } else {
-            toast({
-              title: "Σφάλμα",
-              description: "Ο πελάτης δεν βρέθηκε.",
-              variant: "destructive",
-            });
-            navigate('/clients');
-          }
-        } catch (error) {
-          console.error('Error loading client:', error);
-          toast({
-            title: "Σφάλμα",
-            description: "Υπήρξε πρόβλημα κατά τη φόρτωση του πελάτη.",
-            variant: "destructive",
-          });
-          navigate('/clients');
-        }
-      }
-    };
-
-    loadClient();
-  }, [clientId, navigate]);
-  
-  const handleSubmit = (data: { 
-    device: CreateDeviceData; 
-    technicalReport?: Omit<CreateTechnicalReportData, 'deviceId' | 'clientId'> 
-  }) => {
-    setIsLoading(true);
-    
-    try {
-      // Προσθήκη συσκευής
-      const newDevice = addDevice(data.device);
-      
-      // Προσθήκη δελτίου τεχνικού ελέγχου αν περιλαμβάνεται
-      if (data.technicalReport && data.technicalReport.diagnosis) {
-        const reportData: CreateTechnicalReportData = {
-          ...data.technicalReport,
-          deviceId: newDevice.id,
-          clientId: newDevice.clientId
-        };
-        
-        addTechnicalReport(reportData);
-        
-        toast({
-          title: "Επιτυχής προσθήκη",
-          description: "Η συσκευή και το δελτίο τεχνικού ελέγχου προστέθηκαν επιτυχώς.",
-        });
-      } else {
-        toast({
-          title: "Επιτυχής προσθήκη",
-          description: "Η συσκευή προστέθηκε επιτυχώς.",
-        });
-      }
-      
-      if (clientId) {
-        navigate(`/clients/${clientId}`);
-      } else {
-        navigate(`/devices/${newDevice.id}`);
-      }
-    } catch (error) {
-      console.error('Σφάλμα κατά την προσθήκη:', error);
+  const addDeviceMutation = useMutation({
+    mutationFn: addDevice,
+    onSuccess: (newDevice) => {
+      queryClient.invalidateQueries({ queryKey: ['devices'] });
+      queryClient.invalidateQueries({ queryKey: ['client-devices', clientId] });
       
       toast({
+        title: "Επιτυχής προσθήκη",
+        description: "Η συσκευή προστέθηκε επιτυχώς στο σύστημα.",
+      });
+      
+      // If includeReport is true, navigate to add technical report
+      if (includeReport) {
+        navigate(`/devices/${newDevice.id}/add-report`);
+      } else {
+        // Otherwise, navigate back to the client detail page
+        navigate(`/clients/${newDevice.clientId}`);
+      }
+    },
+    onError: (error: Error) => {
+      console.error("Error adding device:", error);
+      toast({
         title: "Σφάλμα",
-        description: "Υπήρξε ένα πρόβλημα κατά την προσθήκη της συσκευής.",
+        description: "Υπήρξε ένα πρόβλημα κατά την προσθήκη της συσκευής. Προσπαθήστε ξανά.",
         variant: "destructive",
       });
-    } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
+  });
+  
+  // Determine if we should include a technical report after adding the device
+  const includeReport = new URLSearchParams(window.location.search).get('includeReport') === 'true';
+  
+  const handleSubmit = async (data: CreateDeviceData) => {
+    console.log("Submitting device form with data:", data);
+    setIsSubmitting(true);
+    addDeviceMutation.mutate(data);
   };
   
   return (
@@ -97,22 +56,16 @@ const AddDevice: React.FC = () => {
       <div className="max-w-3xl mx-auto">
         <div className="mb-6 animate-fade-in">
           <h1 className="text-2xl font-bold">Προσθήκη Νέας Συσκευής</h1>
-          {client ? (
-            <p className="text-muted-foreground mt-1">
-              Προσθήκη συσκευής για τον πελάτη: {client.first_name} {client.last_name}
-            </p>
-          ) : (
-            <p className="text-muted-foreground mt-1">
-              Συμπληρώστε τα στοιχεία της νέας συσκευής και του δελτίου τεχνικού ελέγχου.
-            </p>
-          )}
+          <p className="text-muted-foreground mt-1">
+            Εισάγετε τα στοιχεία της νέας συσκευής στη φόρμα παρακάτω.
+          </p>
         </div>
         
         <DeviceForm
-          clientId={clientId}
+          clientId={clientId || ''}
           onSubmit={handleSubmit}
-          isLoading={isLoading}
-          includeReport={true}
+          isLoading={isSubmitting}
+          includeReport={includeReport}
         />
       </div>
     </div>

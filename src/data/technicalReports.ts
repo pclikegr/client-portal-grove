@@ -3,6 +3,22 @@ import { TechnicalReport, CreateTechnicalReportData, UpdateTechnicalReportData }
 import { updateDevice, getDeviceById } from "./devices";
 import { supabase } from "@/integrations/supabase/client";
 
+// Helper function to convert Supabase response to TechnicalReport type
+const mapToTechnicalReport = (data: any): TechnicalReport => {
+  return {
+    id: data.id,
+    deviceId: data.device_id,
+    clientId: data.client_id,
+    diagnosis: data.diagnosis,
+    solution: data.solution || '',
+    cost: data.cost || 0,
+    timeSpent: data.time_spent || 0,
+    completed: data.completed || false,
+    createdAt: new Date(data.created_at),
+    updatedAt: new Date(data.updated_at)
+  };
+};
+
 export const getTechnicalReports = async (): Promise<TechnicalReport[]> => {
   const { data, error } = await supabase
     .from('technical_reports')
@@ -13,7 +29,7 @@ export const getTechnicalReports = async (): Promise<TechnicalReport[]> => {
     throw error;
   }
   
-  return data as TechnicalReport[];
+  return Array.isArray(data) ? data.map(mapToTechnicalReport) : [];
 };
 
 export const getTechnicalReportById = async (id: string): Promise<TechnicalReport | undefined> => {
@@ -28,7 +44,7 @@ export const getTechnicalReportById = async (id: string): Promise<TechnicalRepor
     return undefined;
   }
   
-  return data as TechnicalReport;
+  return data ? mapToTechnicalReport(data) : undefined;
 };
 
 export const getTechnicalReportByDeviceId = async (deviceId: string): Promise<TechnicalReport | undefined> => {
@@ -43,19 +59,27 @@ export const getTechnicalReportByDeviceId = async (deviceId: string): Promise<Te
     return undefined;
   }
   
-  return data as TechnicalReport;
+  return data ? mapToTechnicalReport(data) : undefined;
 };
 
 export const addTechnicalReport = async (report: CreateTechnicalReportData): Promise<TechnicalReport> => {
+  // Get current user
+  const { data: { session } } = await supabase.auth.getSession();
+  
+  if (!session?.user) {
+    throw new Error("You must be logged in to add a technical report");
+  }
+  
   // Convert camelCase to snake_case for Supabase
   const formattedReport = {
     device_id: report.deviceId,
     client_id: report.clientId,
     diagnosis: report.diagnosis,
-    solution: report.solution,
-    cost: report.cost,
-    time_spent: report.timeSpent,
-    completed: report.completed || false
+    solution: report.solution || '',
+    cost: report.cost || 0,
+    time_spent: report.timeSpent || 0,
+    completed: report.completed || false,
+    user_id: session.user.id
   };
   
   const { data, error } = await supabase
@@ -79,7 +103,7 @@ export const addTechnicalReport = async (report: CreateTechnicalReportData): Pro
     console.error("Error updating device after adding technical report:", error);
   }
   
-  return data as TechnicalReport;
+  return mapToTechnicalReport(data);
 };
 
 export const updateTechnicalReport = async (id: string, updates: Partial<UpdateTechnicalReportData>): Promise<TechnicalReport | undefined> => {
@@ -96,7 +120,7 @@ export const updateTechnicalReport = async (id: string, updates: Partial<UpdateT
   if (updates.deviceId) formattedUpdates.device_id = updates.deviceId;
   if (updates.clientId) formattedUpdates.client_id = updates.clientId;
   if (updates.diagnosis) formattedUpdates.diagnosis = updates.diagnosis;
-  if (updates.solution) formattedUpdates.solution = updates.solution;
+  if (updates.solution !== undefined) formattedUpdates.solution = updates.solution;
   if (updates.cost !== undefined) formattedUpdates.cost = updates.cost;
   if (updates.timeSpent !== undefined) formattedUpdates.time_spent = updates.timeSpent;
   if (updates.completed !== undefined) formattedUpdates.completed = updates.completed;
@@ -124,7 +148,7 @@ export const updateTechnicalReport = async (id: string, updates: Partial<UpdateT
     }
   }
   
-  return data as TechnicalReport;
+  return mapToTechnicalReport(data);
 };
 
 export const deleteTechnicalReport = async (id: string): Promise<boolean> => {
@@ -149,7 +173,7 @@ export const deleteTechnicalReport = async (id: string): Promise<boolean> => {
   try {
     await updateDevice(report.deviceId, {
       status: 'pending',
-      technicalReportId: null
+      technicalReportId: undefined
     });
   } catch (error) {
     console.error("Error updating device after deleting technical report:", error);

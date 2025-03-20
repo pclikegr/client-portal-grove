@@ -3,6 +3,27 @@ import { Client, CreateClientData, UpdateClientData } from "@/types/client";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from '@/components/ui/use-toast';
 
+// Helper function to convert Supabase response to Client type
+const mapToClient = (data: any): Client => {
+  return {
+    id: data.id,
+    user_id: data.user_id,
+    first_name: data.first_name,
+    last_name: data.last_name,
+    email: data.email,
+    phone: data.phone,
+    company: data.company || '',
+    position: data.position || '',
+    address: data.address || '',
+    city: data.city || '',
+    zip_code: data.zip_code || '',
+    country: data.country || '',
+    notes: data.notes || '',
+    created_at: new Date(data.created_at),
+    updated_at: new Date(data.updated_at)
+  };
+};
+
 export const getClients = async (): Promise<Client[]> => {
   console.log("Fetching clients from Supabase");
   
@@ -16,7 +37,7 @@ export const getClients = async (): Promise<Client[]> => {
       throw error;
     }
     
-    return data as Client[];
+    return Array.isArray(data) ? data.map(mapToClient) : [];
   } catch (error) {
     console.error("Error in getClients:", error);
     throw error;
@@ -38,7 +59,7 @@ export const getClientById = async (id: string): Promise<Client | null> => {
       return null;
     }
     
-    return data as Client;
+    return data ? mapToClient(data) : null;
   } catch (error) {
     console.error(`Error in getClientById for id ${id}:`, error);
     return null;
@@ -49,9 +70,21 @@ export const addClient = async (clientData: CreateClientData): Promise<Client> =
   console.log("Adding client to Supabase:", clientData);
   
   try {
+    // Get current user
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (!session?.user) {
+      throw new Error("You must be logged in to add a client");
+    }
+    
+    const dataWithUserId = {
+      ...clientData,
+      user_id: session.user.id
+    };
+    
     const { data, error } = await supabase
       .from('clients')
-      .insert([clientData])
+      .insert([dataWithUserId])
       .select()
       .single();
     
@@ -61,7 +94,7 @@ export const addClient = async (clientData: CreateClientData): Promise<Client> =
     }
     
     console.log("Client added successfully:", data);
-    return data as Client;
+    return mapToClient(data);
   } catch (error) {
     console.error("Error in addClient:", error);
     throw error;
@@ -85,7 +118,7 @@ export const updateClient = async (id: string, updates: UpdateClientData): Promi
     }
     
     console.log(`Client ${id} updated successfully:`, data);
-    return data as Client;
+    return mapToClient(data);
   } catch (error) {
     console.error(`Error in updateClient for id ${id}:`, error);
     throw error;
@@ -135,7 +168,7 @@ export const searchClients = async (query: string): Promise<Client[]> => {
     }
     
     console.log(`Search found ${data.length} clients matching "${query}"`);
-    return data as Client[];
+    return Array.isArray(data) ? data.map(mapToClient) : [];
   } catch (error) {
     console.error(`Error in searchClients for query "${query}":`, error);
     return [];
