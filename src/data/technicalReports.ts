@@ -96,6 +96,7 @@ export const addTechnicalReport = async (report: CreateTechnicalReportData): Pro
   // Update the device status
   try {
     await updateDevice(report.deviceId, {
+      id: report.deviceId,
       status: report.completed ? 'completed' : 'in_progress',
       technicalReportId: data.id
     });
@@ -141,6 +142,7 @@ export const updateTechnicalReport = async (id: string, updates: Partial<UpdateT
   if (updates.completed !== undefined) {
     try {
       await updateDevice(existingReport.deviceId, {
+        id: existingReport.deviceId,
         status: updates.completed ? 'completed' : 'in_progress'
       });
     } catch (error) {
@@ -172,6 +174,7 @@ export const deleteTechnicalReport = async (id: string): Promise<boolean> => {
   // Update the device status
   try {
     await updateDevice(report.deviceId, {
+      id: report.deviceId,
       status: 'pending',
       technicalReportId: undefined
     });

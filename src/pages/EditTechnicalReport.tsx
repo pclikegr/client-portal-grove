@@ -21,7 +21,11 @@ const EditTechnicalReport: React.FC = () => {
       
       try {
         const reportData = await getTechnicalReportById(reportId);
-        setReport(reportData || null);
+        if (reportData) {
+          setReport(reportData);
+        } else {
+          setReport(null);
+        }
       } catch (error) {
         console.error("Error fetching technical report:", error);
         toast({

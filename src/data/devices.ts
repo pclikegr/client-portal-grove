@@ -79,7 +79,7 @@ export const addDevice = async (device: CreateDeviceData): Promise<Device> => {
     model: device.model,
     serial_number: device.serialNumber,
     problem: device.problem,
-    received_at: device.receivedAt || new Date(),
+    received_at: device.receivedAt ? device.receivedAt.toISOString() : new Date().toISOString(),
     status: 'pending',
     user_id: session.user.id
   };
@@ -109,8 +109,8 @@ export const updateDevice = async (id: string, updates: Partial<UpdateDeviceData
   if (updates.serialNumber) formattedUpdates.serial_number = updates.serialNumber;
   if (updates.problem) formattedUpdates.problem = updates.problem;
   if (updates.status) formattedUpdates.status = updates.status;
-  if (updates.receivedAt) formattedUpdates.received_at = updates.receivedAt;
-  if (updates.returnedAt) formattedUpdates.returned_at = updates.returnedAt;
+  if (updates.receivedAt) formattedUpdates.received_at = updates.receivedAt.toISOString();
+  if (updates.returnedAt) formattedUpdates.returned_at = updates.returnedAt.toISOString();
   if (updates.technicalReportId) formattedUpdates.technical_report_id = updates.technicalReportId;
   
   const { data, error } = await supabase

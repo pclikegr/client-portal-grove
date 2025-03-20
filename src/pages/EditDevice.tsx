@@ -21,7 +21,11 @@ const EditDevice: React.FC = () => {
       
       try {
         const deviceData = await getDeviceById(deviceId);
-        setDevice(deviceData || null);
+        if (deviceData) {
+          setDevice(deviceData);
+        } else {
+          setDevice(null);
+        }
       } catch (error) {
         console.error("Error fetching device:", error);
         toast({
